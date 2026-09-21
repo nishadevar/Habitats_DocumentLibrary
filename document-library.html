@@ -299,7 +299,7 @@
           <div class="radio-card${modal.path==='draw'?' selected':''}" data-path="draw">
             <div class="radio-card-icon">${svg(ICON.polygon,18)}</div>
             <div class="radio-card-title">Draw Polygon, Line or Point on Map</div>
-            <div class="radio-card-desc">Create and link a new location directly on the map.</div>
+            <div class="radio-card-desc">Create and link a new location directly on the map — draw as many shapes as this document needs, not just one.</div>
           </div>
           <div class="radio-card${modal.path==='upload'?' selected':''}" data-path="upload">
             <div class="radio-card-icon">${svg(ICON.uploadIcon,18)}</div>
@@ -332,7 +332,7 @@
         </div>
         <div class="modal-foot">
           <button class="btn btn-secondary" onclick="modal.step=1;renderModal();">Back</button>
-          <button class="btn btn-primary" id="step2-next" ${modal.shapes.length?'':'disabled'} onclick="goStep3()">Next</button>
+          <button class="btn btn-primary" id="step2-next" ${modal.shapes.length?'':'disabled'} onclick="goStep3()">${nextBtnLabel()}</button>
         </div>`;
     }
     return `
@@ -345,8 +345,13 @@
       </div>
       <div class="modal-foot">
         <button class="btn btn-secondary" onclick="modal.step=1;renderModal();">Back</button>
-        <button class="btn btn-primary" id="step2-next" ${modal.shapes.length?'':'disabled'} onclick="goStep3()">Next</button>
+        <button class="btn btn-primary" id="step2-next" ${modal.shapes.length?'':'disabled'} onclick="goStep3()">${nextBtnLabel()}</button>
       </div>`;
+  }
+
+  function nextBtnLabel(){
+    const n = modal.shapes.length;
+    return n ? `Next · ${n} shape${n===1?'':'s'} added` : 'Next';
   }
 
   function locationSummaryMarkup(){
@@ -440,7 +445,7 @@
         onChange(shapes){
           modal.shapes = shapes;
           const btn = document.getElementById('step2-next');
-          if(btn) btn.disabled = shapes.length===0;
+          if(btn){ btn.disabled = shapes.length===0; btn.textContent = nextBtnLabel(); }
         }
       });
     }

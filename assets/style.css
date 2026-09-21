@@ -353,12 +353,16 @@ textarea.form-input{ resize:vertical; min-height:80px; }
 .modal-foot .spacer{ flex:1; }
 
 /* ---------- Map drawing: floating overlay controls (inside a modal) ---------- */
+.aoi-tip{ margin:16px 24px 0 24px; }
+.aoi-tip strong{ color:inherit; }
 .map-stage{ position:relative; background:#eef1f0; height:460px; }
 .map-stage .map-canvas{ height:100%; }
 .map-search-overlay{ position:absolute; top:16px; left:16px; right:16px; display:flex; align-items:center; gap:8px; background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.12); padding:10px 14px; font-size:13.5px; color:#9ca3af; }
 .map-search-overlay svg{ flex-shrink:0; }
 .map-stage .map-zoom{ top:70px; }
-.map-loc-chips{ position:absolute; top:64px; left:16px; right:16px; display:flex; flex-wrap:wrap; gap:6px; pointer-events:none; }
+.map-loc-chips-row{ position:absolute; top:64px; left:16px; right:120px; display:flex; align-items:center; flex-wrap:wrap; gap:8px; pointer-events:none; }
+.map-loc-chips-label{ font-size:12px; font-weight:700; color:#4b5563; background:#fff; padding:5px 10px; border-radius:20px; box-shadow:0 1px 4px rgba(0,0,0,.15); pointer-events:auto; flex-shrink:0; }
+.map-loc-chips{ display:flex; flex-wrap:wrap; gap:6px; }
 .map-loc-chips .loc-chip{ pointer-events:auto; }
 .loc-chip{ display:inline-flex; align-items:center; gap:6px; background:#fff; border-radius:20px; padding:5px 8px 5px 10px; font-size:12.5px; font-weight:600; color:#111827; box-shadow:0 1px 4px rgba(0,0,0,.15); }
 .loc-chip .loc-chip-icon{ width:16px;height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }

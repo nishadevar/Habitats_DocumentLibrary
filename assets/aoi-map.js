@@ -47,6 +47,10 @@ const AOIMap = (function(){
     let currentPoints = [];
 
     containerEl.innerHTML = `
+      <div class="banner banner-info aoi-tip">
+        ${svgIcon(ICON.info,16)}
+        <span>You're not limited to one shape — <strong>add as many polygons, lines and points as this document needs.</strong> Each one is added to the list below and can be edited or removed on its own.</span>
+      </div>
       <div class="map-stage">
         <svg class="map-canvas mode-off" viewBox="0 0 1000 460">
           <defs>
@@ -59,14 +63,17 @@ const AOIMap = (function(){
           <g class="geom-layer"></g>
         </svg>
         <div class="map-search-overlay">${svgIcon(ICON.search,15)}<span>Search ELR, lineside, route, region, grid, w3w, place</span>${svgIcon(ICON.chev,14)}</div>
-        <div class="map-loc-chips"></div>
+        <div class="map-loc-chips-row">
+          <span class="map-loc-chips-label" style="display:none;">Added so far:</span>
+          <div class="map-loc-chips"></div>
+        </div>
         <div class="map-zoom"><span title="Zoom in">${svgIcon(ICON.plus,13)}</span><span title="Zoom out">${svgIcon(ICON.minus,13)}</span></div>
         <div class="map-pill">
           <button class="map-pill-btn" data-tool="point">${svgIcon(ICON.point)}Point</button>
           <button class="map-pill-btn" data-tool="line">${svgIcon(ICON.line)}Line</button>
           <button class="map-pill-btn" data-tool="polygon">${svgIcon(ICON.polygon)}Polygon</button>
           <span class="map-pill-divider pill-extra" style="display:none;"></span>
-          <button class="map-pill-btn pill-finish pill-extra" style="display:none;" disabled>${svgIcon(ICON.check,14)}Finish</button>
+          <button class="map-pill-btn pill-finish pill-extra" style="display:none;" disabled>${svgIcon(ICON.check,14)}Add shape</button>
           <button class="map-pill-btn pill-cancel pill-extra" style="display:none;" title="Cancel this shape">${svgIcon(ICON.close,14)}</button>
         </div>
       </div>
@@ -76,6 +83,7 @@ const AOIMap = (function(){
     const svgEl = containerEl.querySelector('.map-canvas');
     const layerEl = containerEl.querySelector('.geom-layer');
     const chipsEl = containerEl.querySelector('.map-loc-chips');
+    const chipsLabelEl = containerEl.querySelector('.map-loc-chips-label');
     const hintEl = containerEl.querySelector('.hint-text');
     const toolBtns = [...containerEl.querySelectorAll('.map-pill-btn[data-tool]')];
     const finishBtn = containerEl.querySelector('.pill-finish');
@@ -120,6 +128,7 @@ const AOIMap = (function(){
           <button class="loc-chip-remove" data-remove="${s.id}" title="Remove">${svgIcon(ICON.close,9)}</button>
         </span>`;
       }).join('');
+      chipsLabelEl.style.display = shapes.length ? '' : 'none';
 
       toolBtns.forEach(b=>b.classList.toggle('active', drawMode===b.dataset.tool));
       const showExtra = drawMode==='line' || drawMode==='polygon';
@@ -131,15 +140,15 @@ const AOIMap = (function(){
 
       if(!drawMode){
         hintEl.innerHTML = shapes.length
-          ? `Select Point, Line or Polygon to add another shape — <strong>${shapes.length}</strong> added so far.`
-          : `Select Point, Line or Polygon above to start marking this document's location.`;
+          ? `<strong>${shapes.length}</strong> shape${shapes.length===1?'':'s'} added. Pick Point, Line or Polygon to add <strong>another one</strong> — or continue when you're done.`
+          : `Pick Point, Line or Polygon below to start. You're not limited to one — draw as many shapes as this document needs.`;
       } else if(drawMode==='point'){
-        hintEl.textContent = 'Click anywhere on the map to drop a point.';
+        hintEl.innerHTML = `Click anywhere on the map to drop a point. Point stays selected, so you can drop <strong>several points in a row</strong>.`;
       } else {
         const need = minPointsFor(drawMode);
         hintEl.textContent = currentPoints.length < need
           ? `Click to place ${TYPE_LABEL[drawMode].toLowerCase()} points (at least ${need}) — ${currentPoints.length} placed.`
-          : `Keep clicking to add points, or select Finish to save this ${TYPE_LABEL[drawMode].toLowerCase()}.`;
+          : `Keep clicking to add points, or select Add shape to save this ${TYPE_LABEL[drawMode].toLowerCase()} — you can then start another.`;
       }
     }
 

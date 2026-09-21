@@ -211,7 +211,7 @@
         </div>
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">Document location <span style="color:var(--text-mute);font-weight:500;">(optional)</span></label>
-          <p class="form-hint" style="margin:0 0 10px 0;">Draw one or more polygons, lines or points to link where this document applies.</p>
+          <p class="form-hint" style="margin:0 0 10px 0;">Not limited to one shape — draw as many polygons, lines and points as this document applies to.</p>
           ${locationFieldMarkup()}
         </div>
       </div>
@@ -230,8 +230,13 @@
       <div class="modal-body no-pad"><div id="aoi-map-mount"></div></div>
       <div class="modal-foot">
         <button class="btn btn-secondary" onclick="modal.view='details'; renderModal();">Back</button>
-        <button class="btn btn-primary" onclick="modal.view='details'; renderModal();">Add</button>
+        <button class="btn btn-primary" id="map-add-btn" onclick="modal.view='details'; renderModal();">${mapAddBtnLabel()}</button>
       </div>`;
+  }
+
+  function mapAddBtnLabel(){
+    const n = modal.shapes.length;
+    return n ? `Done · ${n} shape${n===1?'':'s'} added` : 'Done';
   }
 
   function renderModal(){
@@ -240,7 +245,11 @@
       host.innerHTML = `<div class="modal-card modal-wide">${mapViewMarkup()}</div>`;
       mapCtrl = AOIMap.mount(document.getElementById('aoi-map-mount'), {
         shapes: modal.shapes,
-        onChange(shapes){ modal.shapes = shapes; }
+        onChange(shapes){
+          modal.shapes = shapes;
+          const btn = document.getElementById('map-add-btn');
+          if(btn) btn.textContent = mapAddBtnLabel();
+        }
       });
     } else {
       host.innerHTML = `<div class="modal-card">${detailsViewMarkup()}</div>`;
