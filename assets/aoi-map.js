@@ -105,6 +105,9 @@ const AOIMap = (function(){
     }
 
     function removeShape(id){
+      const shape = shapes.find(s=>s.id===id);
+      if(!shape) return;
+      if(!confirm(`Are you sure you want to delete this ${TYPE_LABEL[shape.type].toLowerCase()}? This cannot be undone. Every other shape stays exactly as it is.`)) return;
       shapes = shapes.filter(s=>s.id!==id);
       notify();
       render();

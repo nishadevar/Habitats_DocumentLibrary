@@ -224,17 +224,21 @@
     document.getElementById('map-toggle-label').textContent = mapVisible ? 'Hide Map' : 'Show Map';
   }
 
+  function performDeleteDoc(code){
+    const idx = DOCS.findIndex(d=>d.code===code);
+    if(idx>-1) DOCS.splice(idx,1);
+    if(selectedCode===code) selectedCode = null;
+    renderRows();
+    renderPreview();
+  }
+
   function deleteDoc(code){
     const doc = DOCS.find(d=>d.code===code);
     if(!doc) return;
     const n = doc.shapes.length;
     const geomNote = n ? ` This will also permanently delete all ${n} geometr${n===1?'y':'ies'} (polygons, lines and points) drawn as its area of interest.` : '';
     if(confirm(`Delete "${doc.name}"? This cannot be undone.${geomNote}`)){
-      const idx = DOCS.findIndex(d=>d.code===code);
-      if(idx>-1) DOCS.splice(idx,1);
-      if(selectedCode===code) selectedCode = null;
-      renderRows();
-      renderPreview();
+      performDeleteDoc(code);
     }
   }
 
@@ -443,7 +447,17 @@
       mapCtrl = AOIMap.mount(document.getElementById('aoi-map-mount'), {
         shapes: modal.shapes,
         onChange(shapes){
+          const hadShapes = modal.shapes.length > 0;
           modal.shapes = shapes;
+
+          if(modal.mode==='edit' && hadShapes && shapes.length===0){
+            if(confirm(`"${modal.name}" now has no locations left on its area of interest. Delete this document as well?`)){
+              performDeleteDoc(modal.editingCode);
+              closeModal();
+              return;
+            }
+          }
+
           const btn = document.getElementById('step2-next');
           if(btn){ btn.disabled = shapes.length===0; btn.textContent = nextBtnLabel(); }
         }
