@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>habitats | Document Library</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  #list-layout{ display:grid; grid-template-columns:2fr 1fr; gap:20px; align-items:start; }
+  #list-layout.no-map{ grid-template-columns:1fr; }
+  #list-layout.no-map #map-panel{ display:none; }
+  #map-panel{ position:sticky; top:0; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="sidebar-root"></div>
+
+  <main class="main">
+    <div id="header-root"></div>
+
+    <div class="toolbar">
+      <button class="chip chip-all" id="cat-all" onclick="selectCategory('all')">All <span id="count-all">0</span></button>
+      <button class="chip chip-ghost" id="cat-surveys" onclick="selectCategory('surveys')">Surveys <span id="count-surveys">0</span></button>
+      <button class="chip chip-ghost" id="cat-era" onclick="selectCategory('era')">ERA <span id="count-era">0</span></button>
+      <button class="chip chip-ghost" id="cat-photographs" onclick="selectCategory('photographs')">Photographs <span id="count-photographs">0</span></button>
+      <button class="chip chip-ghost" id="cat-geospatial" onclick="selectCategory('geospatial')">Geospatial Data <span id="count-geospatial">0</span></button>
+    </div>
+
+    <div class="toolbar">
+      <label class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="doc-search" placeholder="Search documents…" oninput="filterDocs()">
+      </label>
+      <div class="spacer"></div>
+      <button class="btn btn-secondary" id="filters-btn" onclick="this.classList.toggle('active')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+        Filters
+      </button>
+      <button class="btn btn-secondary" id="map-toggle-btn" onclick="toggleMap()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2 3 5v17l6-3 6 3 6-3V2l-6 3-6-3Z"/><path d="M9 2v17M15 5v17"/></svg>
+        <span id="map-toggle-label">Hide Map</span>
+      </button>
+      <a class="btn btn-primary" id="upload-btn" href="document-library-upload.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Upload Document
+      </a>
+    </div>
+
+    <div id="list-layout">
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th class="checkbox-cell"><input type="checkbox" aria-label="Select all"></th>
+              <th>Document</th><th>Category</th><th>Area of Interest</th><th>Size</th><th>Uploaded</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="doc-rows"></tbody>
+        </table>
+        <div class="table-footer">
+          <div class="rows-select">Rows per page: <select><option>10</option></select></div>
+          <span id="rows-count">0–0 of 0</span>
+          <span class="pager-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="pager-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
+        </div>
+      </div>
+
+      <aside class="map-shell" id="map-panel">
+        <div class="map-canvas-wrap">
+          <svg id="preview-svg" class="map-canvas" viewBox="0 0 400 420" style="cursor:default;height:460px;"></svg>
+          <div class="map-zoom">
+            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></span>
+            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></span>
+          </div>
+        </div>
+        <div class="map-hint" id="preview-hint">Select a document to preview its area of interest.</div>
+      </aside>
+    </div>
+
+    <div class="footnote">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>
+      <span>A document's <strong>Area of Interest</strong> can be made up of several polygons, lines and points drawn together — open a document to add, edit or remove individual shapes.</span>
+    </div>
+  </main>
+</div>
+<script src="assets/shell.js"></script>
+<script>
+  initShell('geospatial', 'Document Library',
+    'Upload and organise supporting documents — surveys, approvals, photographs and geospatial datasets — each with its own area of interest on the map.');
+
+  const ICON = {
+    doc:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+    approvals:'<path d="M9 2h6l1 4H8z"/><path d="M4 6h16l-1.5 14a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2z"/>',
+    photo:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 16l-5-5-4 4-3-3-6 6"/>',
+    geo:'<path d="M12 2 3 7l9 5 9-5-9-5Z"/><path d="M3 17l9 5 9-5"/><path d="M3 12l9 5 9-5"/>',
+    pin:'<circle cx="11" cy="11" r="6"/><path d="M11 8v3l2 2"/>',
+    trash:'<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/>',
+    edit:'<path d="M11 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/>'
+  };
+  function svg(inner, size){ return `<svg width="${size||16}" height="${size||16}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${inner}</svg>`; }
+
+  const CATEGORY_LABEL = { surveys:'Surveys', era:'Environmental Requirements & Approvals', photographs:'Photographs', geospatial:'Geospatial Data' };
+  const CATEGORY_ICON = { surveys:ICON.doc, era:ICON.approvals, photographs:ICON.photo, geospatial:ICON.geo };
+  const ADD_LABEL = { all:'Upload Document', surveys:'Add New Survey', era:'Add New Approval', photographs:'Add New Photograph', geospatial:'Add New Geospatial Dataset' };
+
+  const DOCS = [
+    { code:'SUR-01', name:'Phase 1 habitat survey.pdf', cat:'surveys', size:'6.2 MB', uploaded:'15 Jul 2026',
+      shapes:[ {type:'polygon', points:[[90,110],[230,80],[300,190],[220,300],[110,260]]}, {type:'point', points:[[260,120]]} ] },
+    { code:'ERA-04', name:'EPS licence — bats.pdf', cat:'era', size:'0.9 MB', uploaded:'02 Aug 2026', shapes:[] },
+    { code:'PHO-02', name:'Bat roost — Bridge 14.jpg', cat:'photographs', size:'4.6 MB', uploaded:'28 Jul 2026',
+      shapes:[ {type:'point', points:[[200,210]]} ] },
+    { code:'GEO-01', name:'Riverside culvert survey.gpkg', cat:'geospatial', size:'12.8 MB', uploaded:'06 Aug 2026',
+      shapes:[ {type:'polygon', points:[[70,90],[190,60],[240,150],[150,220],[70,180]]},
+               {type:'polygon', points:[[230,220],[330,200],[350,300],[260,330]]},
+               {type:'line', points:[[80,240],[160,300],[250,270]]},
+               {type:'point', points:[[300,120]]} ] },
+    { code:'GEO-02', name:'Site boundary.shp', cat:'geospatial', size:'0.6 MB', uploaded:'01 Aug 2026',
+      shapes:[ {type:'polygon', points:[[110,80],[290,110],[320,260],[150,330],[80,220]]} ] },
+  ];
+
+  function aoiPill(n){
+    if(!n) return `<span class="aoi-pill empty">No AOI defined</span>`;
+    return `<span class="aoi-pill">${svg(ICON.pin,13)}${n} geometr${n===1?'y':'ies'}</span>`;
+  }
+
+  const SHAPE_COLOR = { polygon:'#2fae82', line:'#2f5fa8', point:'#7c4fd6' };
+  function pts(points){ return points.map(p=>p[0]+','+p[1]).join(' '); }
+  function shapeSVG(s){
+    if(s.type==='polygon') return `<polygon points="${pts(s.points)}" fill="${SHAPE_COLOR.polygon}22" stroke="${SHAPE_COLOR.polygon}" stroke-width="2" stroke-dasharray="3,4"/>`;
+    if(s.type==='line') return `<polyline points="${pts(s.points)}" fill="none" stroke="${SHAPE_COLOR.line}" stroke-width="2.5" stroke-dasharray="3,4" stroke-linecap="round"/>`;
+    const p = s.points[0];
+    return `<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="${SHAPE_COLOR.point}" stroke="#fff" stroke-width="2"/>`;
+  }
+
+  let selectedCode = null;
+  function selectRow(code){
+    selectedCode = code;
+    renderRows();
+    renderPreview();
+  }
+
+  function renderPreview(){
+    const svgEl = document.getElementById('preview-svg');
+    const hint = document.getElementById('preview-hint');
+    const d = DOCS.find(x=>x.code===selectedCode);
+    if(!d){
+      svgEl.innerHTML = '';
+      hint.textContent = 'Select a document to preview its area of interest.';
+      return;
+    }
+    if(!d.shapes.length){
+      svgEl.innerHTML = '';
+      hint.innerHTML = `<strong>${d.name}</strong> has no area of interest drawn yet.`;
+      return;
+    }
+    const cx = d.shapes[0].points[0][0], cy = d.shapes[0].points[0][1];
+    svgEl.innerHTML = d.shapes.map(shapeSVG).join('') + `<text x="${cx}" y="${cy-14}" font-size="13" font-weight="700" fill="#111827" text-anchor="middle">${d.code}</text>`;
+    hint.innerHTML = `<strong>${d.name}</strong> · ${d.shapes.length} geometr${d.shapes.length===1?'y':'ies'} shown`;
+  }
+
+  function renderRows(){
+    const q = (document.getElementById('doc-search').value||'').trim().toLowerCase();
+    const cat = currentCategory;
+    const rows = DOCS.filter(d => (cat==='all' || d.cat===cat) && (!q || d.name.toLowerCase().includes(q)));
+    const tbody = document.getElementById('doc-rows');
+    if(!rows.length){
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No documents found</td></tr>`;
+    } else {
+      tbody.innerHTML = rows.map(d => `
+        <tr class="clickable${d.code===selectedCode?' row-selected':''}" onclick="selectRow('${d.code}')">
+          <td class="checkbox-cell"><input type="checkbox" onclick="event.stopPropagation()"></td>
+          <td>
+            <div class="item-cell">
+              <span class="item-icon">${svg(CATEGORY_ICON[d.cat])}</span>
+              <div class="item-name">${d.name}</div>
+            </div>
+          </td>
+          <td>${CATEGORY_LABEL[d.cat]}</td>
+          <td>${aoiPill(d.shapes.length)}</td>
+          <td>${d.size}</td>
+          <td>${d.uploaded}</td>
+          <td style="text-align:right;white-space:nowrap;">
+            <button class="icon-btn-sm" title="Edit document" onclick="event.stopPropagation(); location.href='document-library-upload.html?edit=1&name=${encodeURIComponent(d.name)}&cat=${d.cat}'">${svg(ICON.edit,15)}</button>
+            <button class="icon-btn-sm danger" title="Delete document" onclick="event.stopPropagation(); deleteDoc('${d.code}')">${svg(ICON.trash,15)}</button>
+          </td>
+        </tr>`).join('');
+    }
+    document.getElementById('rows-count').textContent = rows.length ? `1–${rows.length} of ${rows.length}` : '0–0 of 0';
+    Object.keys(CATEGORY_LABEL).forEach(k=>{
+      document.getElementById('count-'+k).textContent = DOCS.filter(d=>d.cat===k).length;
+    });
+    document.getElementById('count-all').textContent = DOCS.length;
+  }
+
+  let currentCategory = (location.hash || '#all').replace('#','');
+  if(!CATEGORY_LABEL[currentCategory]) currentCategory = 'all';
+
+  function selectCategory(key){
+    currentCategory = key;
+    location.hash = key;
+    document.querySelectorAll('.toolbar .chip').forEach(c=>{ c.classList.remove('chip-all'); c.classList.add('chip-ghost'); });
+    const active = document.getElementById('cat-'+key);
+    active.classList.remove('chip-ghost');
+    active.classList.add('chip-all');
+    document.getElementById('upload-btn').lastChild.textContent = ' ' + ADD_LABEL[key];
+    renderRows();
+  }
+
+  function filterDocs(){ renderRows(); }
+
+  let mapVisible = true;
+  function toggleMap(){
+    mapVisible = !mapVisible;
+    document.getElementById('list-layout').classList.toggle('no-map', !mapVisible);
+    document.getElementById('map-toggle-label').textContent = mapVisible ? 'Hide Map' : 'Show Map';
+  }
+
+  function deleteDoc(code){
+    const doc = DOCS.find(d=>d.code===code);
+    if(!doc) return;
+    const n = doc.shapes.length;
+    const geomNote = n ? ` This will also permanently delete all ${n} geometr${n===1?'y':'ies'} (polygons, lines and points) drawn as its area of interest.` : '';
+    if(confirm(`Delete "${doc.name}"? This cannot be undone.${geomNote}`)){
+      const idx = DOCS.findIndex(d=>d.code===code);
+      if(idx>-1) DOCS.splice(idx,1);
+      if(selectedCode===code) selectedCode = null;
+      renderRows();
+      renderPreview();
+    }
+  }
+
+  selectCategory(currentCategory);
+  renderPreview();
+</script>
+</body>
+</html>

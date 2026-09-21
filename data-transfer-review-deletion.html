@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>habitats | Review Deletion Request</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="app">
+  <div id="sidebar-root"></div>
+
+  <main class="main">
+    <div id="header-root"></div>
+
+    <a href="approvals.html" style="display:inline-flex;align-items:center;gap:6px;font-size:13.5px;color:#4b5563;text-decoration:none;margin-bottom:18px;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      Back to Approvals
+    </a>
+
+    <div class="detail-grid">
+      <div>
+        <div class="card">
+          <h2 class="card-title">Bat Roost Photo Survey — Bridge 14</h2>
+          <p class="card-desc">Photographs · deletion requested by <strong>Costain Group</strong></p>
+
+          <div class="summary-row"><span class="summary-label">Request type</span><span class="summary-value"><span class="access-tag access-deletion">Deletion Request</span></span></div>
+          <div class="summary-row"><span class="summary-label">Requested by</span><span class="summary-value">Costain Group</span></div>
+          <div class="summary-row"><span class="summary-label">Date requested</span><span class="summary-value">08 Aug 2026</span></div>
+
+          <div class="form-group" style="margin-top:18px;">
+            <label class="form-label">Reason given</label>
+            <p style="font-size:13.5px;color:#4b5563;background:#f9fafb;border-radius:8px;padding:12px 14px;margin:0;">
+              Survey was superseded by a repeat visit in July with better conditions; this version is inaccurate and should be removed.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title" style="font-size:14.5px;">Who loses access if this is approved</h3>
+          <div class="impact-row">
+            <div class="impact-org">
+              <span class="org-icon" style="width:28px;height:28px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M6 21V7l6-4 6 4v14M9 9h1M9 13h1M14 9h1M14 13h1"/></svg></span>
+              <div><div class="org-name">Your organisation</div><div class="org-meta">Data Transfer · View</div></div>
+            </div>
+            <span class="impact-loss">Will lose access</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="banner banner-info">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>
+            Approving this permanently deletes the item at the source and cannot be undone.
+          </div>
+          <div class="form-group" style="margin-top:18px;">
+            <label class="form-label">Your comment (included in the decision)</label>
+            <textarea class="form-input" placeholder="Add a comment for the requester…"></textarea>
+          </div>
+          <div class="form-actions" style="justify-content:flex-start;">
+            <button class="btn btn-danger-outline" onclick="location.href='data-transfer.html'">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+              Approve &amp; Delete
+            </button>
+            <button class="btn btn-secondary" onclick="location.href='data-transfer.html'">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              Reject
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <aside>
+        <div class="card">
+          <div class="side-card-label">Requested by</div>
+          <div class="side-card-value">Costain Group</div>
+          <div class="side-card-label">Approver required</div>
+          <div class="side-card-value">Organisation Admin</div>
+          <div class="side-card-label">Item type</div>
+          <div class="side-card-value">Photographs</div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+<script src="assets/shell.js"></script>
+<script>initShell('data-transfer', 'Review Deletion Request');</script>
+</body>
+</html>

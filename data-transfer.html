@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>habitats | Data Transfer</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="app">
+  <div id="sidebar-root"></div>
+
+  <main class="main">
+    <div id="header-root"></div>
+
+    <div class="tabs">
+      <div class="tab active" id="tab-outgoing" onclick="showTab('outgoing')">Outgoing <span class="count">5</span></div>
+      <div class="tab" id="tab-incoming" onclick="showTab('incoming')">Incoming <span class="count">3</span></div>
+    </div>
+    <p class="help-note" id="tab-definition" style="margin:0 0 18px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>Items your organisation has shared or transferred to other organisations — track their approval status and who they were shared with.</p>
+
+    <div class="toolbar">
+      <label class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" placeholder="Search by plan, project or document">
+      </label>
+      <button class="chip chip-all">All</button>
+      <button class="chip chip-ghost">Pending Approval</button>
+      <button class="chip chip-ghost">Approved</button>
+      <button class="chip chip-ghost">Rejected</button>
+      <button class="chip chip-deletion" style="background:var(--pill-deletion-bg);color:var(--pill-deletion-fg);">Deletion Requested</button>
+      <button class="chip chip-ghost">Revoked</button>
+      <div class="spacer"></div>
+      <a class="btn btn-primary" href="data-transfer-new.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        New Transfer
+      </a>
+      <a class="btn btn-secondary" href="data-transfer-delete.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+        Request Deletion
+      </a>
+      <a class="btn btn-secondary" href="data-transfer-revoke.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        Revoke Access
+      </a>
+    </div>
+
+    <!-- ============ OUTGOING ============ -->
+    <div id="panel-outgoing">
+      <div class="table-card">
+        <table class="table-wide">
+          <thead>
+            <tr><th>Item</th><th>Shared With</th><th>Org Type</th><th>Access</th><th>Status</th><th>Reason</th><th>Date Shared</th><th>Last Updated</th></tr>
+          </thead>
+          <tbody>
+            <tr class="clickable" onclick="location.href='data-transfer-detail.html'">
+              <td>
+                <div class="item-cell">
+                  <span class="item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2h6l1 4H8z"/><path d="M4 6h16l-1.5 14a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2z"/></svg></span>
+                  <div><div class="item-name">BASP-0142 · Grassland Restoration</div><div class="item-sub">Asset Plan</div></div>
+                </div>
+              </td>
+              <td>Network Rail</td>
+              <td><span class="org-role-tag">Parent</span></td>
+              <td><span class="access-tag access-transfer">Data Transfer · View</span></td>
+              <td><span class="status status-active">Approved</span></td>
+              <td>—</td>
+              <td>03 Aug 2026</td>
+              <td>07 Aug 2026</td>
+            </tr>
+            <tr class="clickable" onclick="location.href='data-transfer-detail.html'">
+              <td>
+                <div class="item-cell">
+                  <span class="item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l9 5 9-5"/><path d="M12 2 3 7l9 5 9-5-9-5Z"/><path d="M3 12l9 5 9-5"/></svg></span>
+                  <div><div class="item-name">Riverside Culvert Survey</div><div class="item-sub">Geospatial Dataset</div></div>
+                </div>
+              </td>
+              <td>Kier Highways Ltd</td>
+              <td><span class="org-role-tag">Child</span></td>
+              <td><span class="access-tag access-transfer">Data Transfer · View</span></td>
+              <td><span class="status status-pending">Pending Approval</span></td>
+              <td>—</td>
+              <td>06 Aug 2026</td>
+              <td>06 Aug 2026</td>
+            </tr>
+            <tr class="clickable" onclick="location.href='data-transfer-detail.html'">
+              <td>
+                <div class="item-cell">
+                  <span class="item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+                  <div><div class="item-name">ELR-BTN1 Vegetation Management Project</div><div class="item-sub">Project</div></div>
+                </div>
+              </td>
+              <td>Balfour Beatty (Incoming Contractor)</td>
+              <td><span class="org-role-tag">Child</span></td>
+              <td><span class="access-tag access-ownership">Data Ownership · Edit</span></td>
+              <td><span class="status status-pending">Pending Approval</span></td>
+              <td>—</td>
+              <td>07 Aug 2026</td>
+              <td>07 Aug 2026</td>
+            </tr>
+            <tr class="clickable" onclick="location.href='data-transfer-detail.html'">
+              <td>
+                <div class="item-cell">
+                  <span class="item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span>
+                  <div><div class="item-name">Survey 1 · Phase 1 Habitat Survey</div><div class="item-sub">Survey</div></div>
+                </div>
+              </td>
+              <td>Amey Rail</td>
+              <td><span class="org-role-tag">Child</span></td>
+              <td><span class="access-tag access-transfer">Data Transfer · View</span></td>
+              <td><span class="status status-active">Approved</span></td>
+              <td>—</td>
+              <td>15 Jul 2026</td>
+              <td>01 Aug 2026</td>
+            </tr>
+            <tr class="clickable" onclick="location.href='data-transfer-delete.html'">
+              <td>
+                <div class="item-cell">
+                  <span class="item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7l9 5 9-5-9-5Z"/><path d="M3 17l9 5 9-5"/><path d="M3 12l9 5 9-5"/></svg></span>
+                  <div><div class="item-name">Legacy Site Boundary Survey</div><div class="item-sub">Geospatial Dataset</div></div>
+                </div>
+              </td>
+              <td>Amey Rail</td>
+              <td><span class="org-role-tag">Child</span></td>
+              <td><span class="access-tag access-transfer">Data Transfer · View</span></td>
+              <td><span class="status status-deletion">Deletion Requested</span></td>
+              <td><span class="cell-truncate" title="Superseded by the 2026 boundary resurvey; this dataset is no longer accurate.">Superseded by the 2026 boundary resurvey…</span></td>
+              <td>10 May 2026</td>
+              <td>08 Aug 2026</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="table-footer">
+          <div class="rows-select">Rows per page: <select><option>10</option></select></div>
+          <span>1–5 of 5</span>
+          <span class="pager-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="pager-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ INCOMING ============ -->
+    <div id="panel-incoming" style="display:none;">
+      <div class="table-card">
+        <table class="table-wide">
+          <thead>
+            <tr><th>Item</th><th>Shared By</th><th>Org Type</th><th>Access</th><th>Status</th><th>Reason</th><th>Date Received</th><th></th></tr>
+          </thead>
+          <tbody>
+            <tr class="clickable" onclick="location.href='data-transfer-review.html'">
+              <td>
+                <div class="item-cell">
+                  <span class="item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2h6l1 4H8z"/><path d="M4 6h16l-1.5 14a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2z"/></svg></span>
+                  <div><div class="item-name">BASP-0098 · Wetland Buffer Zone</div><div class="item-sub">Asset Plan</div></div>
+                </div>
+              </td>
+              <td>Story Contracting (Outgoing Contractor)</td>
+              <td><span class="org-role-tag">Child</span></td>
+              <td><span class="access-tag access-ownership">Data Ownership · Edit</span></td>
+              <td><span class="status status-pending">Pending Your Approval</span></td>
+              <td><span class="cell-truncate" title="Handing this plan over as our works on ELR-BTN1 are complete. Ownership should move to Balfour Beatty for the next phase; Network Rail keeps visibility throughout.">Handing this plan over as our works on ELR-BTN1…</span></td>
+              <td>08 Aug 2026</td>
+              <td><a class="btn btn-secondary" href="data-transfer-review.html" onclick="event.stopPropagation()">Review</a></td>
+            </tr>
+            <tr class="clickable" onclick="location.href='data-transfer-detail.html'">
+              <td>
+                <div class="item-cell">
+                  <span class="item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 16l-5-5-4 4-3-3-6 6"/></svg></span>
+                  <div><div class="item-name">Bat Roost Photo Survey — Bridge 14</div><div class="item-sub">Photographs</div></div>
+                </div>
+              </td>
+              <td>Costain Group</td>
+              <td><span class="org-role-tag">Child</span></td>
+              <td><span class="access-tag access-transfer">Data Transfer · View</span></td>
+              <td><span class="status status-active">Approved</span></td>
+              <td>—</td>
+              <td>28 Jul 2026</td>
+              <td></td>
+            </tr>
+            <tr class="clickable" onclick="location.href='data-transfer-detail.html'">
+              <td>
+                <div class="item-cell">
+                  <span class="item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+                  <div><div class="item-name">ELR-WAT2 Track Renewal Project</div><div class="item-sub">Project</div></div>
+                </div>
+              </td>
+              <td>Kier Highways Ltd</td>
+              <td><span class="org-role-tag">Child</span></td>
+              <td><span class="access-tag access-transfer">Data Transfer · View</span></td>
+              <td><span class="status status-rejected">Rejected</span></td>
+              <td>—</td>
+              <td>14 Jul 2026</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="table-footer">
+          <div class="rows-select">Rows per page: <select><option>10</option></select></div>
+          <span>1–3 of 3</span>
+          <span class="pager-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="pager-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footnote">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>
+      <span><strong>Data Transfer</strong> gives the recipient a live link with view-only access — only asset plans with <strong>Approved</strong> status can be shared this way.</span>
+    </div>
+    <div class="footnote" style="margin-top:6px;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>
+      <span><strong>Data Ownership</strong> gives the recipient edit rights too, and needs admin approval — it can be transferred for asset plans with <strong>Draft</strong> or <strong>Approved</strong> status only.</span>
+    </div>
+    <div class="footnote" style="margin-top:6px;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>
+      <span>Requests needing your decision — including revoke requests — live under <strong>Approvals</strong>.</span>
+    </div>
+  </main>
+</div>
+<script src="assets/shell.js"></script>
+<script>
+  initShell('data-transfer', 'Data Transfer',
+    'Share asset plans, projects and documents with other organisations through a controlled approval workflow — for client transparency, cross-organisation collaboration, and supply-chain handover.');
+
+  const HINT_ICON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>';
+  const TAB_DEFINITIONS = {
+    outgoing: HINT_ICON + 'Items your organisation has shared or transferred to other organisations — track their approval status and who they were shared with.',
+    incoming: HINT_ICON + 'Items other organisations have shared or transferred to your organisation, including anything awaiting your review under Approvals.'
+  };
+
+  function showTab(name){
+    ['outgoing','incoming'].forEach(t=>{
+      document.getElementById('panel-'+t).style.display = t===name ? '' : 'none';
+      document.getElementById('tab-'+t).classList.toggle('active', t===name);
+    });
+    document.getElementById('tab-definition').innerHTML = TAB_DEFINITIONS[name];
+  }
+</script>
+</body>
+</html>

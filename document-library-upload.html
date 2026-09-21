@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>habitats | Upload Document</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="app">
+  <div id="sidebar-root"></div>
+
+  <main class="main">
+    <div id="header-root"></div>
+
+    <a href="document-library.html" style="display:inline-flex;align-items:center;gap:6px;font-size:13.5px;color:#4b5563;text-decoration:none;margin-bottom:18px;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      Back to Document Library
+    </a>
+
+    <!-- ===== Document details ===== -->
+    <div class="card" style="max-width:900px;">
+      <h2 class="card-title" id="form-title">Upload Document</h2>
+      <p class="card-desc">Add the file and its details. You can define its area of interest on the map below.</p>
+
+      <div class="form-group">
+        <label class="form-label">File <span class="required-mark">*</span></label>
+        <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
+          <input type="file" id="file-input" style="display:none;" onchange="onFileChosen(this.files)">
+          <div class="dropzone-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg></div>
+          <div class="dropzone-title">Click to upload, or drag and drop</div>
+          <div class="dropzone-hint">PDF, image, spreadsheet or GIS file up to 50 MB</div>
+          <div id="file-preview"></div>
+        </div>
+      </div>
+
+      <div class="split-grid">
+        <div class="form-group">
+          <label class="form-label">Document name <span class="required-mark">*</span></label>
+          <input class="form-input" id="doc-name" placeholder="e.g. Phase 1 habitat survey">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category <span class="required-mark">*</span></label>
+          <select class="form-select" id="doc-category">
+            <option value="surveys">Surveys</option>
+            <option value="era">Environmental Requirements &amp; Approvals</option>
+            <option value="photographs">Photographs</option>
+            <option value="geospatial">Geospatial Data</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Description (optional)</label>
+        <textarea class="form-input" id="doc-desc" placeholder="Add context for reviewers…"></textarea>
+      </div>
+    </div>
+
+    <!-- ===== Area of Interest ===== -->
+    <div class="card" style="max-width:900px;">
+      <div class="card-header-row">
+        <div>
+          <h3 class="card-title">Document area (AOI)</h3>
+          <p class="card-desc" style="margin:0;">Draw one or more polygons, lines or points to define where this document applies. All shapes are saved together as this document's combined area of interest.</p>
+        </div>
+      </div>
+
+      <div class="map-shell">
+        <div class="map-toolbar">
+          <button class="map-tool" id="tool-point" onclick="setMode('point')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>
+            Point
+          </button>
+          <button class="map-tool" id="tool-line" onclick="setMode('line')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 19 19 5"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="5" r="2"/></svg>
+            Line
+          </button>
+          <button class="map-tool" id="tool-polygon" onclick="setMode('polygon')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 8 6-3 9H7L4 9Z"/></svg>
+            Polygon
+          </button>
+          <div class="map-toolbar-divider"></div>
+          <button class="map-tool" id="tool-stop" onclick="stopDrawing()" style="display:none;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            Done
+          </button>
+          <div class="spacer"></div>
+          <div class="map-actions">
+            <button class="map-tool" id="tool-finish" onclick="finishShape()" style="display:none;" disabled>Finish shape</button>
+            <button class="map-tool" id="tool-cancel" onclick="cancelShape()" style="display:none;">Clear points</button>
+            <button class="map-tool" onclick="clearAll()" title="Remove all geometries">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+              Clear all
+            </button>
+          </div>
+        </div>
+
+        <div class="map-canvas-wrap">
+          <svg id="map-svg" class="map-canvas mode-off" viewBox="0 0 1000 460" onclick="onCanvasClick(event)">
+            <defs>
+              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e2e6e5" stroke-width="1"/>
+              </pattern>
+            </defs>
+            <rect width="1000" height="460" fill="#eef1f0"/>
+            <rect width="1000" height="460" fill="url(#grid)"/>
+            <g id="geom-layer"></g>
+          </svg>
+          <div class="map-zoom">
+            <span title="Zoom in"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></span>
+            <span title="Zoom out"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></span>
+          </div>
+        </div>
+
+        <div class="map-hint" id="map-hint">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>
+          <span>Select a tool above to start drawing this document's area of interest.</span>
+        </div>
+      </div>
+
+      <div class="geom-summary" id="geom-summary" style="display:none;"></div>
+
+      <div class="geom-list" id="geom-list"></div>
+    </div>
+
+    <div class="form-actions" style="max-width:900px;">
+      <a class="btn btn-secondary" href="document-library.html">Cancel</a>
+      <button class="btn btn-danger-outline" id="delete-doc-btn" style="display:none;margin-right:auto;" onclick="deleteDocument()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+        Delete Document
+      </button>
+      <button class="btn btn-primary" id="save-btn" onclick="saveDocument()">Upload Document</button>
+    </div>
+
+  </main>
+</div>
+<script src="assets/shell.js"></script>
+<script>
+  const params = new URLSearchParams(location.search);
+  const isEdit = params.get('edit') === '1';
+
+  initShell('geospatial', isEdit ? 'Edit Document' : 'Upload Document');
+
+  /* ---------- Seed / edit-mode setup ---------- */
+  let nextId = 1;
+  let geometries = [];
+
+  if(isEdit){
+    document.getElementById('form-title').textContent = 'Edit Document';
+    document.getElementById('save-btn').textContent = 'Save Changes';
+    document.getElementById('delete-doc-btn').style.display = '';
+    document.getElementById('doc-name').value = params.get('name') || 'Riverside culvert survey.gpkg';
+    document.getElementById('doc-category').value = params.get('cat') || 'geospatial';
+    document.getElementById('file-preview').innerHTML = fileRow(params.get('name') || 'Riverside culvert survey.gpkg', '12.8 MB');
+
+    // A document that already has multiple geometries saved as its AOI.
+    geometries = [
+      { id:nextId++, type:'polygon', points:[[220,120],[380,90],[460,210],[360,320],[230,290]] },
+      { id:nextId++, type:'polygon', points:[[560,260],[700,230],[740,340],[620,380]] },
+      { id:nextId++, type:'line',    points:[[250,340],[380,400],[520,360]] },
+      { id:nextId++, type:'point',   points:[[640,140]] },
+    ];
+  }
+
+  function fileRow(name, size){
+    return `<div class="dropzone-file" onclick="event.stopPropagation()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      <div><div style="font-weight:600;">${name}</div><div style="color:var(--text-mute);font-size:12px;">${size}</div></div>
+      <span class="remove-file" onclick="removeFile(event)">${iconSvg('<path d="M18 6 6 18M6 6l12 12"/>',15)}</span>
+    </div>`;
+  }
+  function onFileChosen(files){
+    if(!files || !files.length) return;
+    const f = files[0];
+    const size = (f.size/1024/1024).toFixed(1)+' MB';
+    document.getElementById('file-preview').innerHTML = fileRow(f.name, size);
+    if(!document.getElementById('doc-name').value){
+      document.getElementById('doc-name').value = f.name.replace(/\.[^/.]+$/, '');
+    }
+  }
+  function removeFile(evt){
+    evt.stopPropagation();
+    document.getElementById('file-preview').innerHTML = '';
+    document.getElementById('file-input').value = '';
+  }
+
+  /* ---------- Drawing state ---------- */
+  let drawMode = null;      // 'point' | 'line' | 'polygon' | null
+  let currentPoints = [];
+  let selectedId = null;
+
+  const TYPE_LABEL = { polygon:'Polygon', line:'Line', point:'Point' };
+  const TYPE_COLOR  = { polygon:'#2fae82', line:'#2f5fa8', point:'#7c4fd6' };
+  const TYPE_ICON = {
+    polygon:'<path d="m12 3 8 6-3 9H7L4 9Z"/>',
+    line:'<path d="M5 19 19 5"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="5" r="2"/>',
+    point:'<circle cx="12" cy="12" r="3"/>'
+  };
+  function iconSvg(inner, size){ return `<svg width="${size||16}" height="${size||16}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${inner}</svg>`; }
+
+  function setMode(type){
+    drawMode = (drawMode === type) ? null : type;
+    currentPoints = [];
+    document.getElementById('map-svg').classList.toggle('mode-off', !drawMode);
+    ['point','line','polygon'].forEach(t=>{
+      document.getElementById('tool-'+t).classList.toggle('active', drawMode===t);
+    });
+    document.getElementById('tool-stop').style.display = drawMode ? '' : 'none';
+    render();
+  }
+
+  function stopDrawing(){
+    drawMode = null;
+    currentPoints = [];
+    document.getElementById('map-svg').classList.add('mode-off');
+    ['point','line','polygon'].forEach(t=>document.getElementById('tool-'+t).classList.remove('active'));
+    document.getElementById('tool-stop').style.display = 'none';
+    render();
+  }
+
+  function svgPoint(evt){
+    const svgEl = document.getElementById('map-svg');
+    const rect = svgEl.getBoundingClientRect();
+    const x = Math.round((evt.clientX - rect.left) / rect.width * 1000);
+    const y = Math.round((evt.clientY - rect.top) / rect.height * 460);
+    return [Math.max(6,Math.min(994,x)), Math.max(6,Math.min(454,y))];
+  }
+
+  function onCanvasClick(evt){
+    if(!drawMode) return;
+    const p = svgPoint(evt);
+    if(drawMode === 'point'){
+      commitGeometry('point', [p]);
+      render();
+      return;
+    }
+    currentPoints.push(p);
+    render();
+  }
+
+  function minPointsFor(type){ return type==='polygon' ? 3 : 2; }
+
+  function finishShape(){
+    if(!drawMode || drawMode==='point') return;
+    if(currentPoints.length < minPointsFor(drawMode)) return;
+    commitGeometry(drawMode, currentPoints);
+    currentPoints = [];
+    render();
+  }
+
+  function cancelShape(){
+    currentPoints = [];
+    render();
+  }
+
+  function commitGeometry(type, points){
+    geometries.push({ id: nextId++, type, points: points.map(p=>p.slice()) });
+    selectedId = null;
+  }
+
+  function deleteGeometry(id){
+    geometries = geometries.filter(g => g.id !== id);
+    if(selectedId === id) selectedId = null;
+    render();
+  }
+
+  function toggleSelect(id){
+    selectedId = (selectedId === id) ? null : id;
+    render();
+  }
+
+  function clearAll(){
+    if(!geometries.length) return;
+    if(confirm(`Remove all ${geometries.length} geometries from this document's area of interest?`)){
+      geometries = [];
+      selectedId = null;
+      render();
+    }
+  }
+
+  /* ---------- Rendering ---------- */
+  function pts(points){ return points.map(p=>p[0]+','+p[1]).join(' '); }
+
+  function vertexDots(points, color){
+    return points.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="#fff" stroke="${color}" stroke-width="2"/>`).join('');
+  }
+
+  function shapeMarkup(g){
+    const sel = g.id === selectedId;
+    const color = TYPE_COLOR[g.type];
+    const activeColor = '#0e3d37';
+    if(g.type === 'polygon'){
+      return `<polygon points="${pts(g.points)}" fill="${color}2e" stroke="${sel?activeColor:color}" stroke-width="${sel?3:2}"/>` + (sel ? vertexDots(g.points, activeColor) : '');
+    }
+    if(g.type === 'line'){
+      return `<polyline points="${pts(g.points)}" fill="none" stroke="${sel?activeColor:color}" stroke-width="${sel?4:3}" stroke-linecap="round" stroke-linejoin="round"/>` + (sel ? vertexDots(g.points, activeColor) : '');
+    }
+    const p = g.points[0];
+    return `<circle cx="${p[0]}" cy="${p[1]}" r="${sel?10:7}" fill="${sel?activeColor:color}" stroke="#fff" stroke-width="2"/>`;
+  }
+
+  function previewMarkup(){
+    if(!drawMode || drawMode==='point' || currentPoints.length===0) return '';
+    return `<polyline points="${pts(currentPoints)}" fill="none" stroke="#0e3d37" stroke-width="2" stroke-dasharray="5,5"/>`
+      + currentPoints.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="#0e3d37"/>`).join('');
+  }
+
+  function typeCount(){
+    const c = { polygon:0, line:0, point:0 };
+    geometries.forEach(g=>c[g.type]++);
+    return c;
+  }
+
+  function renderCanvas(){
+    document.getElementById('geom-layer').innerHTML = geometries.map(shapeMarkup).join('') + previewMarkup();
+  }
+
+  function renderHint(){
+    const hint = document.getElementById('map-hint');
+    let msg;
+    if(!drawMode){
+      msg = geometries.length
+        ? 'Select a tool above to add another shape, or use the list below to edit and delete existing ones.'
+        : "Select a tool above to start drawing this document's area of interest.";
+    } else if(drawMode === 'point'){
+      msg = 'Click anywhere on the map to drop a point.';
+    } else {
+      const need = minPointsFor(drawMode);
+      msg = currentPoints.length < need
+        ? `Click to place ${TYPE_LABEL[drawMode].toLowerCase()} points (at least ${need}) — ${currentPoints.length} placed so far.`
+        : `Keep clicking to add more points, or select <strong>Finish shape</strong> to save this ${TYPE_LABEL[drawMode].toLowerCase()}.`;
+    }
+    hint.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg><span>${msg}</span>`;
+  }
+
+  function renderToolbar(){
+    const showFinish = drawMode === 'line' || drawMode === 'polygon';
+    const finishBtn = document.getElementById('tool-finish');
+    const cancelBtn = document.getElementById('tool-cancel');
+    finishBtn.style.display = showFinish ? '' : 'none';
+    cancelBtn.style.display = showFinish ? '' : 'none';
+    finishBtn.disabled = currentPoints.length < minPointsFor(drawMode || 'line');
+  }
+
+  function approxArea(points){
+    let a = 0;
+    for(let i=0;i<points.length;i++){
+      const [x1,y1] = points[i], [x2,y2] = points[(i+1)%points.length];
+      a += x1*y2 - x2*y1;
+    }
+    return Math.round(Math.abs(a)/2);
+  }
+  function approxLength(points){
+    let d = 0;
+    for(let i=0;i<points.length-1;i++){
+      const [x1,y1] = points[i], [x2,y2] = points[i+1];
+      d += Math.hypot(x2-x1, y2-y1);
+    }
+    return Math.round(d);
+  }
+
+  function renderList(){
+    const listEl = document.getElementById('geom-list');
+    if(!geometries.length){
+      listEl.innerHTML = `<div class="geom-empty">No geometries yet — draw a point, line or polygon on the map above.</div>`;
+    } else {
+      const counters = { polygon:0, line:0, point:0 };
+      listEl.innerHTML = geometries.map(g=>{
+        counters[g.type]++;
+        const label = `${TYPE_LABEL[g.type]} ${counters[g.type]}`;
+        const meta = g.type==='polygon' ? `~${approxArea(g.points).toLocaleString()} m² · ${g.points.length} vertices`
+                   : g.type==='line' ? `~${approxLength(g.points).toLocaleString()} m · ${g.points.length} points`
+                   : `1 point on the map`;
+        const sel = g.id === selectedId;
+        return `<div class="geom-row${sel?' selected':''}">
+          <span class="geom-icon type-${g.type}">${iconSvg(TYPE_ICON[g.type],16)}</span>
+          <div>
+            <div class="geom-name">${label}</div>
+            <div class="geom-meta">${meta}</div>
+          </div>
+          <div class="geom-actions">
+            <button class="icon-btn-sm" title="${sel?'Stop editing':'Edit — highlight on map'}" onclick="toggleSelect(${g.id})">${iconSvg('<path d="M11 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/>',15)}</button>
+            <button class="icon-btn-sm danger" title="Delete this geometry" onclick="deleteGeometry(${g.id})">${iconSvg('<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/>',15)}</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  function renderSummary(){
+    const el = document.getElementById('geom-summary');
+    if(!geometries.length){ el.style.display = 'none'; return; }
+    const c = typeCount();
+    const parts = [];
+    if(c.polygon) parts.push(`${c.polygon} polygon${c.polygon===1?'':'s'}`);
+    if(c.line) parts.push(`${c.line} line${c.line===1?'':'s'}`);
+    if(c.point) parts.push(`${c.point} point${c.point===1?'':'s'}`);
+    el.style.display = '';
+    el.innerHTML = `${iconSvg('<path d="M20 6 9 17l-5-5"/>',16)}<span>This document's area is made up of <strong>${geometries.length} geometr${geometries.length===1?'y':'ies'}</strong> (${parts.join(', ')}), saved together as a single combined AOI.</span>`;
+  }
+
+  function render(){
+    renderCanvas();
+    renderHint();
+    renderToolbar();
+    renderList();
+    renderSummary();
+  }
+
+  /* ---------- Save / delete ---------- */
+  function saveDocument(){
+    const name = document.getElementById('doc-name').value.trim();
+    if(!name){
+      alert('Please give this document a name.');
+      return;
+    }
+    alert(`${isEdit ? 'Changes saved' : 'Document uploaded'}: "${name}" with ${geometries.length} geometr${geometries.length===1?'y':'ies'} in its area of interest.`);
+    location.href = 'document-library.html';
+  }
+
+  function deleteDocument(){
+    const name = document.getElementById('doc-name').value.trim() || 'this document';
+    const n = geometries.length;
+    const note = n ? ` All ${n} geometr${n===1?'y':'ies'} (polygons, lines and points) linked to it will be deleted too.` : '';
+    if(confirm(`Delete "${name}"? This cannot be undone.${note}`)){
+      location.href = 'document-library.html';
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>

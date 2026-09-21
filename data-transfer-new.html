@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>habitats | New Data Transfer</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="app">
+  <div id="sidebar-root"></div>
+
+  <main class="main">
+    <div id="header-root"></div>
+
+    <div class="stepper" id="stepper"></div>
+
+    <!-- STEP 1: access type -->
+    <section class="step-panel" id="panel-1">
+      <div class="card" style="max-width:820px;">
+        <h2 class="card-title">What kind of access are you giving?</h2>
+        <p class="card-desc">Choose Data Transfer to let the recipient view a live copy, or Data Ownership to hand over edit rights as well. This determines which items you can pick next.</p>
+        <div class="radio-cards cols-2">
+          <div class="radio-card selected" id="uc-transfer" onclick="selectAccessType('transfer')">
+            <div class="radio-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></div>
+            <div class="radio-card-title">Data Transfer</div>
+            <div class="radio-card-desc">Recipient gets a live link with <strong>view-only</strong> access. Only <strong>Approved</strong> items are eligible. Best for client transparency and collaboration.</div>
+          </div>
+          <div class="radio-card" id="uc-ownership" onclick="selectAccessType('ownership')">
+            <div class="radio-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></div>
+            <div class="radio-card-title">Data Ownership</div>
+            <div class="radio-card-desc">Recipient gets full <strong>edit</strong> rights and becomes responsible for the item. <strong>Draft</strong> or <strong>Approved</strong> items are eligible. Needs admin approval.</div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <a class="btn btn-secondary" href="data-transfer.html">Cancel</a>
+          <button class="btn btn-primary" onclick="goToStep(2)">Continue</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 2: select data -->
+    <section class="step-panel" id="panel-2" style="display:none;">
+      <h2 class="card-title" style="font-size:22px;">Select data to transfer</h2>
+      <p class="card-desc" style="margin-bottom:8px;">Choose the asset plans and documents to share.</p>
+      <p class="help-note" id="eligibility-hint" style="margin-bottom:14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>Only asset plans with <strong>Approved</strong> status can be shared — that's why every asset plan below is Approved.</p>
+
+      <div class="form-group">
+        <input class="form-input" id="item-search" placeholder="Search your documents…" oninput="filterItems(this.value)">
+      </div>
+
+      <div class="card">
+        <div class="card-header-row">
+          <h3 class="card-title">Asset Plans</h3>
+          <span class="card-header-hint">Select one or more</span>
+        </div>
+        <div class="pick-list" id="asset-plans-list">
+          <div class="pick-row" data-name="Asset Plan 1 · Trackside Drainage" data-status="approved" onclick="toggleItem(this)">
+            <span class="pick-checkbox"></span>
+            <div class="item-name" style="font-weight:500;">Asset Plan 1 · Trackside Drainage</div>
+            <span class="status status-active">Approved</span>
+          </div>
+          <div class="pick-row" data-name="Asset Plan 2 · Embankment Stabilisation" data-status="approved" onclick="toggleItem(this)">
+            <span class="pick-checkbox"></span>
+            <div class="item-name" style="font-weight:500;">Asset Plan 2 · Embankment Stabilisation</div>
+            <span class="status status-active">Approved</span>
+          </div>
+          <div class="pick-row selected" data-name="Asset Plan 3 · Grassland Restoration" data-status="approved" onclick="toggleItem(this)">
+            <span class="pick-checkbox"></span>
+            <div class="item-name" style="font-weight:500;">Asset Plan 3 · Grassland Restoration</div>
+            <span class="status status-active">Approved</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header-row">
+          <h3 class="card-title">Document Library</h3>
+          <span class="card-header-hint">Select one or more from any category</span>
+        </div>
+        <div class="pick-list category-list" id="doc-library">
+
+          <div class="category-row" onclick="toggleCategory('surveys')">
+            <span class="category-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span>
+            <div><div class="category-name">Surveys</div><div class="category-meta">3 available</div></div>
+            <span class="category-chev open" id="chev-surveys"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span>
+          </div>
+          <div class="category-files" id="files-surveys">
+            <div class="pick-row" data-name="Phase 1 habitat survey.pdf" onclick="toggleItem(this)">
+              <span class="pick-checkbox"></span>
+              <div><div class="item-name">Phase 1 habitat survey.pdf</div><div class="item-sub">6.2 MB</div></div>
+            </div>
+            <div class="pick-row" data-name="Ecological appraisal report.pdf" onclick="toggleItem(this)">
+              <span class="pick-checkbox"></span>
+              <div><div class="item-name">Ecological appraisal report.pdf</div><div class="item-sub">3.8 MB</div></div>
+            </div>
+            <div class="pick-row" data-name="Protected species survey.pdf" onclick="toggleItem(this)">
+              <span class="pick-checkbox"></span>
+              <div><div class="item-name">Protected species survey.pdf</div><div class="item-sub">2.4 MB</div></div>
+            </div>
+          </div>
+
+          <div class="category-row" onclick="toggleCategory('era')">
+            <span class="category-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2h6l1 4H8z"/><path d="M4 6h16l-1.5 14a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2z"/></svg></span>
+            <div><div class="category-name">Environmental Requirements &amp; Approvals</div><div class="category-meta">3 available</div></div>
+            <span class="category-chev" id="chev-era"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span>
+          </div>
+          <div class="category-files" id="files-era" style="display:none;">
+            <div class="pick-row" data-name="Discharge consent letter.pdf" onclick="toggleItem(this)">
+              <span class="pick-checkbox"></span>
+              <div><div class="item-name">Discharge consent letter.pdf</div><div class="item-sub">1.1 MB</div></div>
+            </div>
+            <div class="pick-row" data-name="EPS licence — bats.pdf" onclick="toggleItem(this)">
+              <span class="pick-checkbox"></span>
+              <div><div class="item-name">EPS licence — bats.pdf</div><div class="item-sub">0.9 MB</div></div>
+            </div>
+            <div class="pick-row" data-name="Section 106 agreement.pdf" onclick="toggleItem(this)">
+              <span class="pick-checkbox"></span>
+              <div><div class="item-name">Section 106 agreement.pdf</div><div class="item-sub">2.7 MB</div></div>
+            </div>
+          </div>
+
+          <div class="category-row" onclick="toggleCategory('photographs')">
+            <span class="category-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 16l-5-5-4 4-3-3-6 6"/></svg></span>
+            <div><div class="category-name">Photographs</div><div class="category-meta">2 available</div></div>
+            <span class="category-chev" id="chev-photographs"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span>
+          </div>
+          <div class="category-files" id="files-photographs" style="display:none;">
+            <div class="pick-row" data-name="Bat roost — Bridge 14.jpg" onclick="toggleItem(this)">
+              <span class="pick-checkbox"></span>
+              <div><div class="item-name">Bat roost — Bridge 14.jpg</div><div class="item-sub">4.6 MB</div></div>
+            </div>
+            <div class="pick-row" data-name="Site boundary panorama.jpg" onclick="toggleItem(this)">
+              <span class="pick-checkbox"></span>
+              <div><div class="item-name">Site boundary panorama.jpg</div><div class="item-sub">5.3 MB</div></div>
+            </div>
+          </div>
+
+          <div class="category-row" onclick="toggleCategory('geospatial')">
+            <span class="category-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7l9 5 9-5-9-5Z"/><path d="M3 17l9 5 9-5"/><path d="M3 12l9 5 9-5"/></svg></span>
+            <div><div class="category-name">Geospatial Data</div><div class="category-meta">2 available</div></div>
+            <span class="category-chev" id="chev-geospatial"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span>
+          </div>
+          <div class="category-files" id="files-geospatial" style="display:none;">
+            <div class="pick-row" data-name="Riverside culvert survey.gpkg" onclick="toggleItem(this)">
+              <span class="pick-checkbox"></span>
+              <div><div class="item-name">Riverside culvert survey.gpkg</div><div class="item-sub">12.8 MB</div></div>
+            </div>
+            <div class="pick-row" data-name="Site boundary.shp" onclick="toggleItem(this)">
+              <span class="pick-checkbox"></span>
+              <div><div class="item-name">Site boundary.shp</div><div class="item-sub">0.6 MB</div></div>
+            </div>
+          </div>
+
+          <p class="form-hint" id="no-results" style="display:none;padding:14px 16px;margin:0;">No documents match your search.</p>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="goToStep(1)">Back</button>
+        <button class="btn btn-primary" onclick="goToStep(3)">Continue</button>
+      </div>
+    </section>
+
+    <!-- STEP 3: recipient -->
+    <section class="step-panel" id="panel-3" style="display:none;">
+      <div class="card" style="max-width:1040px;">
+        <h2 class="card-title">Who is this for?</h2>
+        <p class="card-desc">Share with a whole organisation, or with specific people inside one of your child organisations.</p>
+
+        <div class="form-group">
+          <label class="form-label">Search for an organisation</label>
+          <input class="form-input" id="org-search" placeholder="Start typing an organisation name…" oninput="selectRecipient(null, this.value)">
+        </div>
+
+        <div class="divider-or">or choose below</div>
+
+        <div class="split-grid" style="margin-bottom:18px;">
+          <div>
+            <div class="split-col-title">Share with an organisation</div>
+            <div class="pick-list" id="org-pick-list">
+              <div class="pick-row" onclick="selectRecipient(this,'Network Rail')">
+                <span class="pick-radio"></span>
+                <span class="org-icon" style="width:28px;height:28px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M6 21V7l6-4 6 4v14M9 9h1M9 13h1M14 9h1M14 13h1"/></svg></span>
+                <div style="flex:1;"><div class="item-name">Network Rail</div><div class="item-sub">Your parent organisation</div></div>
+                <span class="org-role-tag">Parent</span>
+              </div>
+              <div class="pick-row" onclick="selectRecipient(this,'Kier Highways Ltd')">
+                <span class="pick-radio"></span>
+                <span class="org-icon" style="width:28px;height:28px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M6 21V7l6-4 6 4v14M9 9h1M9 13h1M14 9h1M14 13h1"/></svg></span>
+                <div style="flex:1;"><div class="item-name">Kier Highways Ltd</div><div class="item-sub">Child organisation</div></div>
+                <span class="org-role-tag">Child</span>
+              </div>
+              <div class="pick-row" onclick="selectRecipient(this,'Balfour Beatty')">
+                <span class="pick-radio"></span>
+                <span class="org-icon" style="width:28px;height:28px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M6 21V7l6-4 6 4v14M9 9h1M9 13h1M14 9h1M14 13h1"/></svg></span>
+                <div style="flex:1;"><div class="item-name">Balfour Beatty</div><div class="item-sub">Child organisation</div></div>
+                <span class="org-role-tag">Child</span>
+              </div>
+            </div>
+            <p class="help-note"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>As a parent, you can see every organisation beneath you in the supply chain.</p>
+          </div>
+
+          <div>
+            <div class="split-col-title">Share with people in a child organisation</div>
+            <div class="child-org-tabs">
+              <button type="button" class="chip chip-all" id="child-tab-kier" onclick="selectChildOrgTab('kier')">Kier Highways Ltd</button>
+              <button type="button" class="chip chip-ghost" id="child-tab-balfour" onclick="selectChildOrgTab('balfour')">Balfour Beatty</button>
+            </div>
+            <div class="pick-list" id="people-kier">
+              <div class="pick-row" data-person="J. Patel · Kier Highways Ltd" onclick="togglePerson(this)">
+                <span class="pick-checkbox"></span>
+                <div style="flex:1;"><div class="item-name">J. Patel</div><div class="item-sub">Admin</div></div>
+              </div>
+              <div class="pick-row" data-person="S. Wong · Kier Highways Ltd" onclick="togglePerson(this)">
+                <span class="pick-checkbox"></span>
+                <div style="flex:1;"><div class="item-name">S. Wong</div><div class="item-sub">Contributor</div></div>
+              </div>
+              <div class="pick-row" data-person="R. Ahmed · Kier Highways Ltd" onclick="togglePerson(this)">
+                <span class="pick-checkbox"></span>
+                <div style="flex:1;"><div class="item-name">R. Ahmed</div><div class="item-sub">Contributor</div></div>
+              </div>
+            </div>
+            <div class="pick-list" id="people-balfour" style="display:none;">
+              <div class="pick-row" data-person="M. O'Connor · Balfour Beatty" onclick="togglePerson(this)">
+                <span class="pick-checkbox"></span>
+                <div style="flex:1;"><div class="item-name">M. O'Connor</div><div class="item-sub">Admin</div></div>
+              </div>
+              <div class="pick-row" data-person="D. Singh · Balfour Beatty" onclick="togglePerson(this)">
+                <span class="pick-checkbox"></span>
+                <div style="flex:1;"><div class="item-name">D. Singh</div><div class="item-sub">Contributor</div></div>
+              </div>
+            </div>
+            <p class="help-note"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>Parent admins can see the names of people inside each child organisation and share with them directly.</p>
+          </div>
+        </div>
+
+        <div class="divider-or">or open it to the network</div>
+        <div class="toggle-row" id="network-toggle" onclick="toggleNetworkVisibility()">
+          <span class="pick-checkbox"></span>
+          <div>
+            <div class="toggle-row-title">Make all my asset plans and documents public</div>
+            <div class="toggle-row-desc">Other parent organisations working in the same area can discover and view this data without you sending an individual request. Useful for the collaboration use case.</div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:18px;">
+          <label class="form-label">Access type</label>
+          <input class="form-input" id="access-readout" value="Data Transfer · View only" disabled>
+        </div>
+
+        <div class="banner banner-info" id="ownership-banner" style="display:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>
+          Ownership transfers apply to draft and approved items, and need approval from an admin at the receiving organisation before they take effect.
+        </div>
+
+        <div class="form-group" style="margin-top:18px;">
+          <label class="form-label">Note to recipient (optional)</label>
+          <textarea class="form-input" placeholder="Add context for the reviewer…"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-secondary" onclick="goToStep(2)">Back</button>
+          <button class="btn btn-primary" onclick="goToStep(4)">Continue</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 4: review -->
+    <section class="step-panel" id="panel-4" style="display:none;">
+      <div class="card" style="max-width:820px;">
+        <h2 class="card-title">Review &amp; submit</h2>
+        <p class="card-desc">Once submitted, an admin at the receiving organisation must approve this transfer before it becomes active.</p>
+        <div class="summary-row"><span class="summary-label">Items</span><span class="summary-value" id="sum-items">Asset Plan 3 · Grassland Restoration</span></div>
+        <div class="summary-row"><span class="summary-label">Access type</span><span class="summary-value" id="sum-access"><span class="access-tag access-transfer">Data Transfer · View</span></span></div>
+        <div class="summary-row"><span class="summary-label">Recipient</span><span class="summary-value" id="sum-recipient">Network Rail</span></div>
+        <div class="summary-row"><span class="summary-label">Visibility once approved</span><span class="summary-value">All users in the recipient organisation</span></div>
+        <div class="form-actions">
+          <button class="btn btn-secondary" onclick="goToStep(3)">Back</button>
+          <button class="btn btn-primary" onclick="location.href='data-transfer.html'">Submit for approval</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+<script src="assets/shell.js"></script>
+<script>
+  initShell('data-transfer', 'New Data Transfer', 'Share an asset plan, project or document with another organisation.');
+
+  const steps = [
+    {label:'Access type'},
+    {label:'Select data'},
+    {label:'Recipient'},
+    {label:'Review'}
+  ];
+  let current = 1;
+  let accessType = 'transfer';
+  let selectedItems = ['Asset Plan 3 · Grassland Restoration'];
+  let recipient = { name:'Network Rail', network:false };
+  let selectedPeople = [];
+
+  const ELIGIBLE_STATUS = {
+    transfer: ['approved'],
+    ownership: ['draft','approved']
+  };
+  const HINT_ICON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>';
+  const ELIGIBILITY_HINT = {
+    transfer: HINT_ICON + 'Only asset plans with <strong>Approved</strong> status can be shared — that\'s why every asset plan below is Approved.',
+    ownership: HINT_ICON + '<strong>Draft</strong> or <strong>Approved</strong> asset plans can have ownership transferred. Submitted items would be mid-review and not eligible.'
+  };
+
+  function renderStepper(){
+    const el = document.getElementById('stepper');
+    el.innerHTML = steps.map((s,i)=>{
+      const n = i+1;
+      const cls = n===current ? 'current' : (n<current ? 'done' : '');
+      const line = n < steps.length ? '<span class="step-line"></span>' : '';
+      return `<div class="step ${cls}"><span class="step-num">${n<current?'✓':n}</span><span class="step-label">${s.label}</span></div>${line}`;
+    }).join('');
+  }
+
+  function goToStep(n){
+    document.getElementById('panel-'+current).style.display = 'none';
+    current = n;
+    document.getElementById('panel-'+current).style.display = '';
+    if(n===4){ updateSummary(); }
+    renderStepper();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function toggleItem(el){
+    if(el.classList.contains('disabled')) return;
+    el.classList.toggle('selected');
+    const name = el.dataset.name;
+    if(el.classList.contains('selected')){
+      if(!selectedItems.includes(name)) selectedItems.push(name);
+    } else {
+      selectedItems = selectedItems.filter(n=>n!==name);
+    }
+  }
+
+  function toggleCategory(key){
+    const files = document.getElementById('files-'+key);
+    const chev = document.getElementById('chev-'+key);
+    const open = files.style.display !== 'none';
+    files.style.display = open ? 'none' : '';
+    chev.classList.toggle('open', !open);
+  }
+
+  function filterItems(query){
+    const q = query.trim().toLowerCase();
+    let anyMatch = false;
+    document.querySelectorAll('#asset-plans-list .pick-row, .category-files .pick-row').forEach(row=>{
+      const match = !q || row.dataset.name.toLowerCase().includes(q);
+      row.style.display = match ? '' : 'none';
+      if(match) anyMatch = true;
+    });
+    document.querySelectorAll('.category-files').forEach(list=>{
+      const key = list.id.replace('files-','');
+      const chev = document.getElementById('chev-'+key);
+      const hasVisible = [...list.querySelectorAll('.pick-row')].some(r=>r.style.display!=='none');
+      if(q){
+        list.style.display = hasVisible ? '' : 'none';
+        chev.classList.toggle('open', hasVisible);
+      } else if(key==='surveys'){
+        list.style.display = '';
+        chev.classList.add('open');
+      } else {
+        list.style.display = 'none';
+        chev.classList.remove('open');
+      }
+    });
+    document.getElementById('no-results').style.display = (q && !anyMatch) ? '' : 'none';
+  }
+
+  function applyEligibility(){
+    const eligible = ELIGIBLE_STATUS[accessType];
+    document.querySelectorAll('#asset-plans-list .pick-row[data-status]').forEach(row=>{
+      const ok = eligible.includes(row.dataset.status);
+      row.classList.toggle('disabled', !ok);
+      row.title = ok ? '' : (accessType==='transfer' ? 'Only Approved items can be shared via Data Transfer' : 'Only Draft or Approved items can have ownership transferred');
+      if(!ok && row.classList.contains('selected')){
+        row.classList.remove('selected');
+        selectedItems = selectedItems.filter(n=>n!==row.dataset.name);
+      }
+    });
+    document.getElementById('eligibility-hint').innerHTML = ELIGIBILITY_HINT[accessType];
+  }
+
+  function selectAccessType(key){
+    accessType = key;
+    document.querySelectorAll('.radio-card').forEach(c=>c.classList.remove('selected'));
+    document.getElementById('uc-'+key).classList.add('selected');
+    document.getElementById('access-readout').value = key==='ownership' ? 'Data Ownership · Edit rights' : 'Data Transfer · View only';
+    document.getElementById('ownership-banner').style.display = key==='ownership' ? '' : 'none';
+    applyEligibility();
+  }
+
+  function selectRecipient(el, name){
+    document.querySelectorAll('#panel-3 .pick-list .pick-row').forEach(r=>r.classList.remove('selected'));
+    document.getElementById('network-toggle').classList.remove('selected');
+    selectedPeople = [];
+    if(el) el.classList.add('selected');
+    recipient = { name: name, network:false };
+  }
+
+  function togglePerson(el){
+    el.classList.toggle('selected');
+    const person = el.dataset.person;
+    if(el.classList.contains('selected')){
+      if(!selectedPeople.includes(person)) selectedPeople.push(person);
+    } else {
+      selectedPeople = selectedPeople.filter(p=>p!==person);
+    }
+    document.getElementById('org-pick-list').querySelectorAll('.pick-row').forEach(r=>r.classList.remove('selected'));
+    document.getElementById('network-toggle').classList.remove('selected');
+    document.getElementById('org-search').value = '';
+    recipient = selectedPeople.length ? { name: selectedPeople.join(', '), network:false } : { name:'Network Rail', network:false };
+  }
+
+  function selectChildOrgTab(key){
+    document.getElementById('people-kier').style.display = key==='kier' ? '' : 'none';
+    document.getElementById('people-balfour').style.display = key==='balfour' ? '' : 'none';
+    document.getElementById('child-tab-kier').className = 'chip ' + (key==='kier' ? 'chip-all' : 'chip-ghost');
+    document.getElementById('child-tab-balfour').className = 'chip ' + (key==='balfour' ? 'chip-all' : 'chip-ghost');
+    const hidden = document.getElementById(key==='kier' ? 'people-balfour' : 'people-kier');
+    hidden.querySelectorAll('.pick-row.selected').forEach(r=>{
+      r.classList.remove('selected');
+      selectedPeople = selectedPeople.filter(p=>p!==r.dataset.person);
+    });
+    recipient = selectedPeople.length ? { name: selectedPeople.join(', '), network:false } : recipient;
+  }
+
+  function toggleNetworkVisibility(){
+    const row = document.getElementById('network-toggle');
+    const isOn = row.classList.toggle('selected');
+    selectedPeople = [];
+    if(isOn){
+      document.querySelectorAll('#panel-3 .pick-list .pick-row').forEach(r=>r.classList.remove('selected'));
+      document.getElementById('org-search').value = '';
+      recipient = { name:'All parent organisations in the esmapp network', network:true };
+    } else {
+      recipient = { name:'Network Rail', network:false };
+    }
+  }
+
+  function updateSummary(){
+    document.getElementById('sum-items').textContent = selectedItems.length ? selectedItems.join(', ') : '—';
+    document.getElementById('sum-recipient').textContent = recipient.name;
+    document.getElementById('sum-access').innerHTML = accessType==='ownership'
+      ? '<span class="access-tag access-ownership">Data Ownership · Edit</span>'
+      : '<span class="access-tag access-transfer">Data Transfer · View</span>';
+  }
+
+  applyEligibility();
+  renderStepper();
+</script>
+</body>
+</html>
