@@ -458,16 +458,24 @@
     if(modal.step===2 && modal.path==='draw'){
       mapCtrl = AOIMap.mount(document.getElementById('aoi-map-mount'), {
         shapes: modal.shapes,
+        confirmDeleteMessage(shape, remaining){
+          const typeLabel = AOIMap.TYPE_LABEL[shape.type].toLowerCase();
+          if(modal.mode==='edit' && remaining===0){
+            return `This is the last location on "${modal.name}". Deleting this ${typeLabel} will leave the document with no area of interest, so "${modal.name}" will also be deleted. Are you sure you want to continue?`;
+          }
+          return null; // use the default message
+        },
         onChange(shapes){
           const hadShapes = modal.shapes.length > 0;
           modal.shapes = shapes;
 
+          // The warning shown before this deletion already told the user the
+          // document itself would go too — so once they've confirmed that,
+          // delete it now rather than asking a second time.
           if(modal.mode==='edit' && hadShapes && shapes.length===0){
-            if(confirm(`"${modal.name}" now has no locations left on its area of interest. Delete this document as well?`)){
-              performDeleteDoc(modal.editingCode);
-              closeModal();
-              return;
-            }
+            performDeleteDoc(modal.editingCode);
+            closeModal();
+            return;
           }
 
           const btn = document.getElementById('step2-next');
