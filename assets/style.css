@@ -386,3 +386,20 @@ textarea.form-input{ resize:vertical; min-height:80px; }
 .loc-summary-list .loc-chip{ box-shadow:none; border:1px solid var(--border); }
 .add-location-btn{ display:inline-flex; align-items:center; gap:8px; border:1.5px dashed var(--border); background:none; border-radius:8px; padding:10px 16px; font-size:13.5px; font-weight:600; color:#374151; cursor:pointer; font-family:inherit; }
 .add-location-btn:hover{ border-color:var(--green-accent); background:#f9fefc; }
+
+/* ---------- Asset Plan stepper tab bar ---------- */
+.plan-tabs{ display:flex; align-items:center; gap:8px; overflow-x:auto; padding-bottom:2px; margin-bottom:24px; }
+.plan-tab{ display:inline-flex; align-items:center; gap:6px; padding:9px 16px; border-radius:8px; font-size:13.5px; font-weight:600; white-space:nowrap; background:#f0f0f0; color:#6b7280; flex-shrink:0; border:1px solid transparent; }
+.plan-tab.done{ background:var(--teal-active); color:#fff; }
+.plan-tab.active{ background:#fff; color:var(--teal-active); border-color:var(--teal-active); }
+.plan-tab svg{ flex-shrink:0; }
+
+/* ---------- Segmented sub-tabs (Site documents / Discoverable documents) ---------- */
+.seg-tabs{ display:flex; gap:28px; border-bottom:1px solid var(--border); margin-bottom:20px; }
+.seg-tab{ padding:10px 2px; font-size:14.5px; font-weight:600; color:var(--text-mute); border-bottom:2px solid transparent; cursor:pointer; display:flex; align-items:center; gap:8px; }
+.seg-tab.active{ color:var(--green-accent); border-bottom-color:var(--green-accent); }
+.seg-tab .count{ background:#f0f0f0; color:#4b5563; font-size:11.5px; font-weight:700; padding:1px 7px; border-radius:10px; }
+.seg-tab.active .count{ background:#eef7f3; color:var(--green-accent); }
+
+.scope-tag{ display:inline-flex; align-items:center; gap:6px; font-size:13px; color:#4b5563; }
+.scope-tag svg{ flex-shrink:0; color:#6b7280; }

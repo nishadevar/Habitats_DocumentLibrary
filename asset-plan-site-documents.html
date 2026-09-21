@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>habitats | Site Documents</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="app">
+  <div id="sidebar-root"></div>
+
+  <main class="main">
+    <div id="header-root"></div>
+
+    <div class="plan-tabs">
+      <span class="plan-tab done"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg> Site identity</span>
+      <span class="plan-tab">Ecological context</span>
+      <span class="plan-tab active"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg> Site Documents</span>
+      <span class="plan-tab done"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg> Habitat inventory</span>
+      <span class="plan-tab">Interventions</span>
+      <span class="plan-tab">Species and consents</span>
+      <span class="plan-tab">BNG summary</span>
+      <span class="plan-tab">Delivery plan</span>
+      <span class="plan-tab">Issue log</span>
+      <span class="plan-tab">Monitoring schedule</span>
+    </div>
+
+    <div class="seg-tabs">
+      <div class="seg-tab active" id="seg-site">Site documents <span class="count" id="site-count">0</span></div>
+      <div class="seg-tab" id="seg-discoverable">Discoverable documents <span class="count">0</span></div>
+    </div>
+
+    <p class="card-desc" style="max-width:900px;margin-top:-8px;">
+      Documents you upload directly for this asset plan (surveys, photos, geospatial data, etc.). These are specific to your site and only visible within this plan.
+      Supported formats: PDF, DOCX, XLSX, JPG, PNG, GeoJSON, KML (ZIP), and Shapefile (ZIP). The maximum upload size is 10 MB per file.
+    </p>
+
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border);">
+        <button class="btn btn-primary" onclick="document.getElementById('site-file-input').click()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
+          Upload Document
+        </button>
+        <input type="file" id="site-file-input" style="display:none;" onchange="onFileSelected(this.files)">
+      </div>
+      <table>
+        <thead>
+          <tr><th>Document name</th><th>Document type</th><th>System date</th><th>Distribution scope</th><th>Doc Summary</th><th>Action</th></tr>
+        </thead>
+        <tbody id="site-doc-rows"></tbody>
+      </table>
+    </div>
+
+    <div class="form-actions" style="max-width:1100px;">
+      <button class="btn btn-secondary">Save</button>
+      <button class="btn btn-primary">Next</button>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="doc-modal" style="display:none;"></div>
+
+<script src="assets/shell.js"></script>
+<script src="assets/aoi-map.js"></script>
+<script>
+  renderSidebar('asset-plans');
+
+  function svg(inner, size){ return `<svg width="${size||16}" height="${size||16}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${inner}</svg>`; }
+  const ICON = {
+    doc:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+    download:'<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>',
+    trash:'<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/>',
+    close:'<path d="M18 6 6 18M6 6l12 12"/>',
+    plus:'<path d="M12 5v14M5 12h14"/>',
+    globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/>',
+    team:'<circle cx="9" cy="8" r="3"/><path d="M2 20c0-3 3-5 7-5s7 2 7 5"/><circle cx="17" cy="8" r="2.5"/><path d="M17 12c2.5 0 4.5 1.8 4.5 4"/>',
+    person:'<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>',
+    uploadIcon:'<path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/>'
+  };
+  const SCOPE_ICON = { Public: ICON.globe, Team: ICON.team, Me: ICON.person };
+
+  const SITE_DOCS = [
+    { name:'ESMP_4ebe3 (2).docx', type:'Survey', date:'16/09/2026', scope:'Public', summary:'-', shapes:[] },
+    { name:'Noise Vibration and Nuisance.docx', type:'Survey', date:'15/09/2026', scope:'Team', summary:'-', shapes:[] },
+    { name:'Giant Hogweed.docx', type:'Survey', date:'15/09/2026', scope:'Me', summary:'-',
+      shapes:[ {type:'point', points:[[520,220]]} ] },
+  ];
+
+  function aoiNote(n){
+    return n ? `<span class="aoi-pill" style="font-size:11.5px;padding:2px 8px;">${n} location${n===1?'':'s'}</span>` : '';
+  }
+
+  function renderSiteDocs(){
+    document.getElementById('site-doc-rows').innerHTML = SITE_DOCS.map((d,i) => `
+      <tr>
+        <td>
+          <div class="item-cell">
+            <span class="item-icon">${svg(ICON.doc)}</span>
+            <div class="item-name">${d.name}</div>
+          </div>
+        </td>
+        <td><span class="status status-active" style="background:#eef7f3;color:var(--green-accent);">${d.type}</span></td>
+        <td>${d.date}</td>
+        <td>
+          <span class="scope-tag">${svg(SCOPE_ICON[d.scope],14)}${d.scope}</span>
+        </td>
+        <td>${d.summary} ${aoiNote(d.shapes.length)}</td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-secondary" style="padding:6px 12px;font-size:12.5px;" onclick="editSiteDoc(${i})">${svg(ICON.download,13)} Download</button>
+          <button class="btn btn-secondary" style="padding:6px 12px;font-size:12.5px;color:#d64545;" onclick="removeSiteDoc(${i})">${svg(ICON.trash,13)} Remove</button>
+        </td>
+      </tr>`).join('');
+    document.getElementById('site-count').textContent = SITE_DOCS.length;
+  }
+
+  function removeSiteDoc(i){
+    if(confirm(`Remove "${SITE_DOCS[i].name}"? ${SITE_DOCS[i].shapes.length ? 'Its linked location will be removed too.' : ''}`)){
+      SITE_DOCS.splice(i,1);
+      renderSiteDocs();
+    }
+  }
+
+  /* ================= Add details modal (+ optional location step) ================= */
+  let modal = null;
+  let mapCtrl = null;
+
+  function onFileSelected(files){
+    if(!files || !files.length) return;
+    const f = files[0];
+    modal = {
+      editingIndex: null,
+      file: { name: f.name, size: (f.size/1024/1024).toFixed(1)+' MB' },
+      name: f.name,
+      type: 'Survey',
+      scope: 'My Org',
+      summary: '',
+      shapes: [],
+      view: 'details'
+    };
+    document.getElementById('doc-modal').style.display = 'flex';
+    renderModal();
+  }
+
+  function editSiteDoc(i){
+    const d = SITE_DOCS[i];
+    modal = { editingIndex:i, file:{name:d.name,size:'—'}, name:d.name, type:d.type, scope:d.scope==='My Org'?'My Org':d.scope, summary:d.summary==='-'?'':d.summary, shapes:d.shapes.map(s=>({...s,id:Math.random()})), view:'details' };
+    document.getElementById('doc-modal').style.display = 'flex';
+    renderModal();
+  }
+
+  function closeModal(){
+    modal = null; mapCtrl = null;
+    document.getElementById('doc-modal').style.display = 'none';
+  }
+
+  function locationFieldMarkup(){
+    if(!modal.shapes.length){
+      return `<button type="button" class="add-location-btn" onclick="modal.view='map'; renderModal();">${svg(ICON.plus,14)} Link a location on the map</button>`;
+    }
+    const counts = {};
+    modal.shapes.forEach(s=>counts[s.type]=(counts[s.type]||0)+1);
+    const typeList = Object.keys(counts).map(t=>`${AOIMap.TYPE_LABEL[t]}${counts[t]>1?' ('+counts[t]+')':''}`).join(', ');
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border);border-radius:8px;padding:12px 16px;">
+        <div>
+          <div style="font-weight:700;color:#111827;font-size:14px;">Location linked</div>
+          <div style="font-size:12.5px;color:var(--text-mute);margin-top:2px;">${typeList} · ${modal.shapes.length} total</div>
+        </div>
+        <a href="#" style="color:var(--green-accent);font-weight:600;font-size:13.5px;" onclick="event.preventDefault(); modal.view='map'; renderModal();">Change</a>
+      </div>`;
+  }
+
+  function detailsViewMarkup(){
+    return `
+      <div class="modal-head">
+        <div class="modal-head-text"><h2 class="modal-title">Add details</h2><p class="modal-subtitle">Please choose how you would like to proceed.</p></div>
+        <button class="modal-close" onclick="closeModal()">${svg(ICON.close,20)}</button>
+      </div>
+      <div class="modal-body">
+        <div class="dropzone-file" style="margin-top:0;margin-bottom:18px;">
+          ${svg(ICON.doc,18)}
+          <div><div style="font-weight:600;">${modal.file.name}</div><div style="color:var(--text-mute);font-size:12px;">${modal.file.size}</div></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Document name <span class="required-mark">*</span></label>
+          <input class="form-input" id="dn-name" value="${modal.name.replace(/"/g,'&quot;')}">
+        </div>
+        <div class="split-grid">
+          <div class="form-group">
+            <label class="form-label">Document Type <span class="required-mark">*</span></label>
+            <select class="form-select" id="dn-type">
+              <option ${modal.type==='Survey'?'selected':''}>Survey</option>
+              <option ${modal.type==='Historical'?'selected':''}>Historical</option>
+              <option ${modal.type==='Other'?'selected':''}>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Distribution Scope <span class="required-mark">*</span></label>
+            <select class="form-select" id="dn-scope">
+              <option ${modal.scope==='My Org'?'selected':''}>My Org</option>
+              <option ${modal.scope==='Team'?'selected':''}>Team</option>
+              <option ${modal.scope==='Public'?'selected':''}>Public</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Document Summary</label>
+          <textarea class="form-input" id="dn-summary" placeholder="Enter description">${modal.summary}</textarea>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Document location <span style="color:var(--text-mute);font-weight:500;">(optional)</span></label>
+          <p class="form-hint" style="margin:0 0 10px 0;">Draw one or more polygons, lines or points to link where this document applies.</p>
+          ${locationFieldMarkup()}
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveDetails()">Save and Continue</button>
+      </div>`;
+  }
+
+  function mapViewMarkup(){
+    return `
+      <div class="modal-head">
+        <div class="modal-head-text"><h2 class="modal-title">Link a location</h2></div>
+        <button class="modal-close" onclick="closeModal()">${svg(ICON.close,20)}</button>
+      </div>
+      <div class="modal-body no-pad"><div id="aoi-map-mount"></div></div>
+      <div class="modal-foot">
+        <button class="btn btn-secondary" onclick="modal.view='details'; renderModal();">Back</button>
+        <button class="btn btn-primary" onclick="modal.view='details'; renderModal();">Add</button>
+      </div>`;
+  }
+
+  function renderModal(){
+    const host = document.getElementById('doc-modal');
+    if(modal.view==='map'){
+      host.innerHTML = `<div class="modal-card modal-wide">${mapViewMarkup()}</div>`;
+      mapCtrl = AOIMap.mount(document.getElementById('aoi-map-mount'), {
+        shapes: modal.shapes,
+        onChange(shapes){ modal.shapes = shapes; }
+      });
+    } else {
+      host.innerHTML = `<div class="modal-card">${detailsViewMarkup()}</div>`;
+    }
+  }
+
+  function saveDetails(){
+    const name = document.getElementById('dn-name').value.trim();
+    if(!name){ alert('Please give this document a name.'); return; }
+    modal.name = name;
+    modal.type = document.getElementById('dn-type').value;
+    modal.scope = document.getElementById('dn-scope').value;
+    modal.summary = document.getElementById('dn-summary').value.trim();
+
+    const record = { name: modal.name, type: modal.type, date: new Date().toLocaleDateString('en-GB'), scope: modal.scope, summary: modal.summary || '-', shapes: modal.shapes };
+    if(modal.editingIndex!==null){
+      SITE_DOCS[modal.editingIndex] = record;
+    } else {
+      SITE_DOCS.push(record);
+    }
+    closeModal();
+    renderSiteDocs();
+  }
+
+  document.getElementById('doc-modal').addEventListener('click', (evt)=>{
+    if(evt.target.id==='doc-modal') closeModal();
+  });
+
+  renderSiteDocs();
+</script>
+</body>
+</html>
