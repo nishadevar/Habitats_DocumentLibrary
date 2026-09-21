@@ -24,7 +24,6 @@ const ICONS = {
 const NAV = [
   { key:'dashboard', label:'Dashboard', icon:ICONS.dashboard, href:'#' },
   { key:'asset-plans', label:'Asset Plans', icon:ICONS.assetPlans, href:'#' },
-  { key:'my-requests', label:'My Requests', icon:ICONS.requests, href:'index.html' },
   { key:'document-library', label:'Document Library', icon:ICONS.doc, children:[
       { key:'surveys', label:'Surveys', icon:ICONS.doc, href:'document-library.html#surveys' },
       { key:'era', label:'Environmental Requirements & Approvals', icon:ICONS.approvals, href:'document-library.html#era' },
@@ -34,8 +33,6 @@ const NAV = [
   { key:'references', label:'References', icon:ICONS.refs, children:[
       { key:'templates', label:'Templates', icon:ICONS.templates, href:'#' },
     ]},
-  { key:'data-transfer', label:'Data Transfer', icon:ICONS.transfer, href:'data-transfer.html' },
-  { key:'approvals', label:'Approvals', icon:ICONS.approvalsNav, href:'approvals.html' },
 ];
 
 function svg(inner, size){ return `<svg class="nav-icon" width="${size||18}" height="${size||18}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${inner}</svg>`; }
