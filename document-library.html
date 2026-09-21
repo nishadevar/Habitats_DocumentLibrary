@@ -256,13 +256,18 @@
 
   function openAddDocumentModal(code){
     const doc = code ? DOCS.find(d=>d.code===code) : null;
+    const hasShapes = !!(doc && doc.shapes.length);
     modal = {
       mode: doc ? 'edit' : 'add',
-      step: doc ? 3 : 1,
-      path: doc && doc.shapes.length ? 'draw' : null,
+      // Editing a document that already has locations opens straight on the
+      // map, so those locations are visible (and editable) immediately —
+      // not hidden behind a "Change" link the user has to know to click.
+      step: doc ? (hasShapes ? 2 : 3) : 1,
+      path: hasShapes ? 'draw' : null,
       shapes: doc ? doc.shapes.map(s=>({ ...s, id: s.id || Math.random() })) : [],
       name: doc ? doc.name : '',
       cat: doc ? doc.cat : (currentCategory!=='all' ? currentCategory : 'surveys'),
+      scope: doc ? (doc.scope || 'My Org') : 'My Org',
       summary: doc ? (doc.summary||'') : '',
       fileMeta: doc ? { name: doc.name, size: doc.size } : null,
       editingCode: doc ? doc.code : null
@@ -318,11 +323,16 @@
       </div>`;
   }
 
+  function step2BackAction(){
+    return modal.mode==='edit' ? "modal.step=3;renderModal();" : "modal.step=1;renderModal();";
+  }
+
   function step2Markup(){
+    const title = modal.mode==='edit' ? 'Edit Document — Locations' : 'Add a Document';
     if(modal.path==='upload'){
       return `
         <div class="modal-head">
-          <div class="modal-head-text"><h2 class="modal-title">Add a Document</h2></div>
+          <div class="modal-head-text"><h2 class="modal-title">${title}</h2></div>
           <button class="modal-close" onclick="closeModal()">${svg(ICON.close,20)}</button>
         </div>
         <div class="modal-body">
@@ -335,27 +345,28 @@
           </div>
         </div>
         <div class="modal-foot">
-          <button class="btn btn-secondary" onclick="modal.step=1;renderModal();">Back</button>
+          <button class="btn btn-secondary" onclick="${step2BackAction()}">${modal.mode==='edit'?'Back to details':'Back'}</button>
           <button class="btn btn-primary" id="step2-next" ${modal.shapes.length?'':'disabled'} onclick="goStep3()">${nextBtnLabel()}</button>
         </div>`;
     }
     return `
       <div class="modal-head">
-        <div class="modal-head-text"><h2 class="modal-title">Add a Document</h2></div>
+        <div class="modal-head-text"><h2 class="modal-title">${title}</h2></div>
         <button class="modal-close" onclick="closeModal()">${svg(ICON.close,20)}</button>
       </div>
       <div class="modal-body no-pad">
         <div id="aoi-map-mount"></div>
       </div>
       <div class="modal-foot">
-        <button class="btn btn-secondary" onclick="modal.step=1;renderModal();">Back</button>
+        <button class="btn btn-secondary" onclick="${step2BackAction()}">${modal.mode==='edit'?'Back to details':'Back'}</button>
         <button class="btn btn-primary" id="step2-next" ${modal.shapes.length?'':'disabled'} onclick="goStep3()">${nextBtnLabel()}</button>
       </div>`;
   }
 
   function nextBtnLabel(){
     const n = modal.shapes.length;
-    return n ? `Next · ${n} shape${n===1?'':'s'} added` : 'Next';
+    const verb = modal.mode==='edit' ? 'Continue to details' : 'Next';
+    return n ? `${verb} · ${n} shape${n===1?'':'s'}` : verb;
   }
 
   function locationSummaryMarkup(){
@@ -406,7 +417,8 @@
           <div class="form-group">
             <label class="form-label">Distribution Scope <span class="required-mark">*</span></label>
             <select class="form-select" id="doc-scope-input">
-              <option>My Org</option><option>Team</option><option>Public</option>
+              <option ${modal.scope==='My Org'?'selected':''}>My Org</option>
+              <option ${modal.scope==='My Group Org'?'selected':''}>My Group Org</option>
             </select>
           </div>
         </div>
@@ -427,7 +439,7 @@
       </div>
       <div class="modal-foot">
         ${modal.mode==='edit' ? `<button class="btn btn-danger-outline" onclick="deleteFromModal()">${svg(ICON.trash,15)}Delete Document</button><span class="spacer"></span>` : ''}
-        <button class="btn btn-secondary" onclick="modal.path ? (modal.step=2, renderModal()) : (modal.step=1, renderModal())">Back</button>
+        <button class="btn btn-secondary" onclick="${modal.mode==='edit' ? "modal.path='draw';modal.step=2;renderModal();" : "modal.path ? (modal.step=2, renderModal()) : (modal.step=1, renderModal())"}">Back</button>
         <button class="btn btn-primary" onclick="saveModal()">${modal.mode==='edit'?'Save Changes':'Save and Continue'}</button>
       </div>`;
   }
@@ -488,15 +500,16 @@
     if(!name){ alert('Please give this document a name.'); return; }
     modal.name = name;
     modal.cat = document.getElementById('doc-cat-input').value;
+    modal.scope = document.getElementById('doc-scope-input').value;
     modal.summary = document.getElementById('doc-summary-input').value.trim();
 
     if(modal.mode==='edit'){
       const doc = DOCS.find(d=>d.code===modal.editingCode);
-      doc.name = modal.name; doc.cat = modal.cat; doc.summary = modal.summary; doc.shapes = modal.shapes;
+      doc.name = modal.name; doc.cat = modal.cat; doc.scope = modal.scope; doc.summary = modal.summary; doc.shapes = modal.shapes;
       if(modal.fileMeta) doc.size = modal.fileMeta.size;
     } else {
       const code = modal.cat.slice(0,3).toUpperCase()+'-'+String(DOCS.length+1).padStart(2,'0');
-      DOCS.push({ code, name: modal.name, cat: modal.cat, size: modal.fileMeta?modal.fileMeta.size:'—', uploaded: new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}), shapes: modal.shapes, summary: modal.summary });
+      DOCS.push({ code, name: modal.name, cat: modal.cat, scope: modal.scope, size: modal.fileMeta?modal.fileMeta.size:'—', uploaded: new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}), shapes: modal.shapes, summary: modal.summary });
     }
     closeModal();
     renderRows();
