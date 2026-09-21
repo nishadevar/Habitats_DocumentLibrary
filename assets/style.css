@@ -337,3 +337,52 @@ textarea.form-input{ resize:vertical; min-height:80px; }
 .icon-btn-sm:hover{ background:#f3f4f6; }
 .icon-btn-sm.danger:hover{ background:#fdeaea; color:#d64545; border-color:#f3c9c9; }
 .geom-empty{ padding:40px 20px; text-align:center; color:#9ca3af; font-size:13.5px; }
+
+/* ---------- Modal chrome ---------- */
+.modal-overlay{ position:fixed; inset:0; background:rgba(17,24,39,.5); display:flex; align-items:center; justify-content:center; z-index:1000; padding:24px; }
+.modal-card{ background:#fff; border-radius:12px; box-shadow:0 20px 50px rgba(0,0,0,.25); width:100%; max-width:600px; max-height:calc(100vh - 48px); display:flex; flex-direction:column; overflow:hidden; }
+.modal-card.modal-wide{ max-width:830px; }
+.modal-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding:24px 24px 4px 24px; flex-shrink:0; }
+.modal-head-text .modal-title{ font-size:18px; font-weight:700; color:#111827; margin:0; }
+.modal-head-text .modal-subtitle{ font-size:13.5px; color:var(--text-mute); margin:4px 0 0 0; }
+.modal-close{ border:none; background:none; color:#9ca3af; cursor:pointer; padding:4px; flex-shrink:0; display:flex; }
+.modal-close:hover{ color:#4b5563; }
+.modal-body{ padding:20px 24px; overflow-y:auto; }
+.modal-body.no-pad{ padding:0; }
+.modal-foot{ display:flex; justify-content:flex-end; gap:10px; padding:16px 24px; border-top:1px solid var(--border); flex-shrink:0; }
+.modal-foot .spacer{ flex:1; }
+
+/* ---------- Map drawing: floating overlay controls (inside a modal) ---------- */
+.map-stage{ position:relative; background:#eef1f0; height:460px; }
+.map-stage .map-canvas{ height:100%; }
+.map-search-overlay{ position:absolute; top:16px; left:16px; right:16px; display:flex; align-items:center; gap:8px; background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.12); padding:10px 14px; font-size:13.5px; color:#9ca3af; }
+.map-search-overlay svg{ flex-shrink:0; }
+.map-stage .map-zoom{ top:70px; }
+.map-loc-chips{ position:absolute; top:64px; left:16px; right:16px; display:flex; flex-wrap:wrap; gap:6px; pointer-events:none; }
+.map-loc-chips .loc-chip{ pointer-events:auto; }
+.loc-chip{ display:inline-flex; align-items:center; gap:6px; background:#fff; border-radius:20px; padding:5px 8px 5px 10px; font-size:12.5px; font-weight:600; color:#111827; box-shadow:0 1px 4px rgba(0,0,0,.15); }
+.loc-chip .loc-chip-icon{ width:16px;height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.loc-chip .loc-chip-icon.type-polygon{ background:#eef7f3; color:var(--green-accent); }
+.loc-chip .loc-chip-icon.type-line{ background:#eef6ff; color:#2f5fa8; }
+.loc-chip .loc-chip-icon.type-point{ background:#f1ecfa; color:#7c4fd6; }
+.loc-chip .loc-chip-remove{ border:none; background:#f0f0f0; color:#6b7280; width:16px;height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+.loc-chip .loc-chip-remove:hover{ background:#fdeaea; color:#d64545; }
+
+.map-pill{ position:absolute; left:50%; bottom:20px; transform:translateX(-50%); display:flex; align-items:center; gap:4px; background:var(--teal-active); border-radius:999px; padding:5px; box-shadow:0 4px 14px rgba(0,0,0,.25); }
+.map-pill-btn{ display:inline-flex; align-items:center; gap:6px; border:none; background:none; color:#dbe9e6; border-radius:999px; padding:9px 16px; font-size:13.5px; font-weight:600; cursor:pointer; font-family:inherit; white-space:nowrap; }
+.map-pill-btn:hover{ color:#fff; }
+.map-pill-btn.active{ background:#fff; color:var(--teal-active); }
+.map-pill-divider{ width:1px; height:20px; background:rgba(255,255,255,.25); margin:0 2px; flex-shrink:0; }
+.map-pill-btn.pill-finish{ background:var(--green-accent); color:#fff; padding:9px 14px; }
+.map-pill-btn.pill-finish:disabled{ opacity:.4; cursor:not-allowed; }
+.map-pill-btn.pill-cancel{ color:#f3c9c9; padding:9px 10px; }
+.map-pill-btn.pill-cancel:hover{ color:#fff; }
+
+.map-below-hint{ font-size:12.5px; color:var(--text-mute); padding:10px 24px 0 24px; display:flex; align-items:center; gap:6px; }
+.map-below-hint strong{ color:#111827; }
+
+/* ---------- Location summary (details step) ---------- */
+.loc-summary-list{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+.loc-summary-list .loc-chip{ box-shadow:none; border:1px solid var(--border); }
+.add-location-btn{ display:inline-flex; align-items:center; gap:8px; border:1.5px dashed var(--border); background:none; border-radius:8px; padding:10px 16px; font-size:13.5px; font-weight:600; color:#374151; cursor:pointer; font-family:inherit; }
+.add-location-btn:hover{ border-color:var(--green-accent); background:#f9fefc; }

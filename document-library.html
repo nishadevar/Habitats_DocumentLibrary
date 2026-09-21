@@ -41,10 +41,10 @@
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2 3 5v17l6-3 6 3 6-3V2l-6 3-6-3Z"/><path d="M9 2v17M15 5v17"/></svg>
         <span id="map-toggle-label">Hide Map</span>
       </button>
-      <a class="btn btn-primary" id="upload-btn" href="document-library-upload.html">
+      <button class="btn btn-primary" id="upload-btn" onclick="openAddDocumentModal()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
         Upload Document
-      </a>
+      </button>
     </div>
 
     <div id="list-layout">
@@ -84,7 +84,11 @@
     </div>
   </main>
 </div>
+
+<div class="modal-overlay" id="doc-modal" style="display:none;"></div>
+
 <script src="assets/shell.js"></script>
+<script src="assets/aoi-map.js"></script>
 <script>
   initShell('geospatial', 'Document Library',
     'Upload and organise supporting documents — surveys, approvals, photographs and geospatial datasets — each with its own area of interest on the map.');
@@ -96,7 +100,11 @@
     geo:'<path d="M12 2 3 7l9 5 9-5-9-5Z"/><path d="M3 17l9 5 9-5"/><path d="M3 12l9 5 9-5"/>',
     pin:'<circle cx="11" cy="11" r="6"/><path d="M11 8v3l2 2"/>',
     trash:'<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/>',
-    edit:'<path d="M11 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/>'
+    edit:'<path d="M11 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/>',
+    close:'<path d="M18 6 6 18M6 6l12 12"/>',
+    plus:'<path d="M12 5v14M5 12h14"/>',
+    polygon:'<path d="m12 3 8 6-3 9H7L4 9Z"/>',
+    uploadIcon:'<path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/>'
   };
   function svg(inner, size){ return `<svg width="${size||16}" height="${size||16}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${inner}</svg>`; }
 
@@ -181,7 +189,7 @@
           <td>${d.size}</td>
           <td>${d.uploaded}</td>
           <td style="text-align:right;white-space:nowrap;">
-            <button class="icon-btn-sm" title="Edit document" onclick="event.stopPropagation(); location.href='document-library-upload.html?edit=1&name=${encodeURIComponent(d.name)}&cat=${d.cat}'">${svg(ICON.edit,15)}</button>
+            <button class="icon-btn-sm" title="Edit document" onclick="event.stopPropagation(); openAddDocumentModal('${d.code}')">${svg(ICON.edit,15)}</button>
             <button class="icon-btn-sm danger" title="Delete document" onclick="event.stopPropagation(); deleteDoc('${d.code}')">${svg(ICON.trash,15)}</button>
           </td>
         </tr>`).join('');
@@ -232,6 +240,260 @@
 
   selectCategory(currentCategory);
   renderPreview();
+
+  /* =========================================================
+     "Add / Edit Document" modal — 3-step wizard:
+     1) Link to location? (Draw on map / Upload spatial file)
+     2) Draw the location(s) on the map (multiple shapes)
+     3) Document details + file + location summary
+     ========================================================= */
+  let modal = null; // { mode, step, path, shapes, name, cat, summary, fileMeta, editingCode }
+  let mapCtrl = null;
+
+  function openAddDocumentModal(code){
+    const doc = code ? DOCS.find(d=>d.code===code) : null;
+    modal = {
+      mode: doc ? 'edit' : 'add',
+      step: doc ? 3 : 1,
+      path: doc && doc.shapes.length ? 'draw' : null,
+      shapes: doc ? doc.shapes.map(s=>({ ...s, id: s.id || Math.random() })) : [],
+      name: doc ? doc.name : '',
+      cat: doc ? doc.cat : (currentCategory!=='all' ? currentCategory : 'surveys'),
+      summary: doc ? (doc.summary||'') : '',
+      fileMeta: doc ? { name: doc.name, size: doc.size } : null,
+      editingCode: doc ? doc.code : null
+    };
+    document.getElementById('doc-modal').style.display = 'flex';
+    renderModal();
+  }
+
+  function closeModal(){
+    modal = null; mapCtrl = null;
+    document.getElementById('doc-modal').style.display = 'none';
+  }
+
+  function modalShell(inner, wide){
+    return `<div class="modal-card${wide?' modal-wide':''}">${inner}</div>`;
+  }
+
+  function renderModal(){
+    const host = document.getElementById('doc-modal');
+    if(modal.step===1) host.innerHTML = modalShell(step1Markup());
+    else if(modal.step===2) host.innerHTML = modalShell(step2Markup(), true);
+    else host.innerHTML = modalShell(step3Markup());
+    wireModal();
+  }
+
+  function step1Markup(){
+    return `
+      <div class="modal-head">
+        <div class="modal-head-text">
+          <h2 class="modal-title">Add a Document</h2>
+          <p class="modal-subtitle" style="font-weight:600;color:#111827;margin-top:14px;">Link to location?</p>
+          <p class="modal-subtitle">Please choose how you would like to proceed.</p>
+        </div>
+        <button class="modal-close" onclick="closeModal()">${svg(ICON.close,20)}</button>
+      </div>
+      <div class="modal-body">
+        <div class="radio-cards cols-2">
+          <div class="radio-card${modal.path==='draw'?' selected':''}" data-path="draw">
+            <div class="radio-card-icon">${svg(ICON.polygon,18)}</div>
+            <div class="radio-card-title">Draw Polygon, Line or Point on Map</div>
+            <div class="radio-card-desc">Create and link a new location directly on the map.</div>
+          </div>
+          <div class="radio-card${modal.path==='upload'?' selected':''}" data-path="upload">
+            <div class="radio-card-icon">${svg(ICON.uploadIcon,18)}</div>
+            <div class="radio-card-title">Upload file</div>
+            <div class="radio-card-desc">Upload a spatial file (KML, GeoJSON, Shapefile, etc.) to map the document location.</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" id="step1-next" ${modal.path?'':'disabled'} onclick="goStep2()">Next</button>
+      </div>`;
+  }
+
+  function step2Markup(){
+    if(modal.path==='upload'){
+      return `
+        <div class="modal-head">
+          <div class="modal-head-text"><h2 class="modal-title">Add a Document</h2></div>
+          <button class="modal-close" onclick="closeModal()">${svg(ICON.close,20)}</button>
+        </div>
+        <div class="modal-body">
+          <div class="dropzone" onclick="document.getElementById('geo-file-input').click()">
+            <input type="file" id="geo-file-input" style="display:none;" onchange="onSpatialFileChosen(this.files)">
+            <div class="dropzone-icon">${svg(ICON.uploadIcon,20)}</div>
+            <div class="dropzone-title">Click to upload, or drag and drop</div>
+            <div class="dropzone-hint">KML (ZIP), GeoJSON or Shapefile (ZIP)</div>
+            <div id="geo-file-preview"></div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn btn-secondary" onclick="modal.step=1;renderModal();">Back</button>
+          <button class="btn btn-primary" id="step2-next" ${modal.shapes.length?'':'disabled'} onclick="goStep3()">Next</button>
+        </div>`;
+    }
+    return `
+      <div class="modal-head">
+        <div class="modal-head-text"><h2 class="modal-title">Add a Document</h2></div>
+        <button class="modal-close" onclick="closeModal()">${svg(ICON.close,20)}</button>
+      </div>
+      <div class="modal-body no-pad">
+        <div id="aoi-map-mount"></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-secondary" onclick="modal.step=1;renderModal();">Back</button>
+        <button class="btn btn-primary" id="step2-next" ${modal.shapes.length?'':'disabled'} onclick="goStep3()">Next</button>
+      </div>`;
+  }
+
+  function locationSummaryMarkup(){
+    if(!modal.shapes.length){
+      return `<button class="add-location-btn" onclick="modal.step=2; if(!modal.path) modal.path='draw'; renderModal();">${svg(ICON.plus,14)}Link a location on the map</button>`;
+    }
+    const counts = {};
+    modal.shapes.forEach(s=>counts[s.type]=(counts[s.type]||0)+1);
+    const typeList = Object.keys(counts).map(t=>`${AOIMap.TYPE_LABEL[t]}${counts[t]>1?' ('+counts[t]+')':''}`).join(', ');
+    return `
+      <div class="form-group" style="display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border);border-radius:8px;padding:12px 16px;">
+        <div>
+          <div style="font-weight:700;color:#111827;font-size:14px;">New Map Location${modal.shapes.length>1?'s':''} Created</div>
+          <div style="font-size:12.5px;color:var(--text-mute);margin-top:2px;">${typeList} · ${modal.shapes.length} total</div>
+        </div>
+        <a href="#" style="color:var(--green-accent);font-weight:600;font-size:13.5px;" onclick="event.preventDefault(); modal.step=2; renderModal();">Change</a>
+      </div>`;
+  }
+
+  function step3Markup(){
+    const fileRow = modal.fileMeta ? `
+      <div class="dropzone-file" onclick="event.stopPropagation()">
+        ${svg(ICON.doc,18)}
+        <div><div style="font-weight:600;">${modal.fileMeta.name}</div><div style="color:var(--text-mute);font-size:12px;">${modal.fileMeta.size}</div></div>
+        <span class="remove-file" onclick="modal.fileMeta=null; renderModal();">${svg(ICON.close,15)}</span>
+      </div>` : '';
+    return `
+      <div class="modal-head">
+        <div class="modal-head-text">
+          <h2 class="modal-title">${modal.mode==='edit'?'Edit Document':'Add Details'}</h2>
+        </div>
+        <button class="modal-close" onclick="closeModal()">${svg(ICON.close,20)}</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:16px;">${locationSummaryMarkup()}</div>
+
+        <div class="form-group">
+          <label class="form-label">Document name <span class="required-mark">*</span></label>
+          <input class="form-input" id="doc-name-input" value="${modal.name.replace(/"/g,'&quot;')}" placeholder="e.g. Phase 1 habitat survey">
+        </div>
+        <div class="split-grid">
+          <div class="form-group">
+            <label class="form-label">Category <span class="required-mark">*</span></label>
+            <select class="form-select" id="doc-cat-input">
+              ${Object.keys(CATEGORY_LABEL).map(k=>`<option value="${k}" ${k===modal.cat?'selected':''}>${CATEGORY_LABEL[k]}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Distribution Scope <span class="required-mark">*</span></label>
+            <select class="form-select" id="doc-scope-input">
+              <option>My Org</option><option>Team</option><option>Public</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Document Summary</label>
+          <textarea class="form-input" id="doc-summary-input" placeholder="Enter description">${modal.summary}</textarea>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">File</label>
+          <div class="dropzone" onclick="document.getElementById('doc-file-input').click()">
+            <input type="file" id="doc-file-input" style="display:none;" onchange="onDocFileChosen(this.files)">
+            <div class="dropzone-icon">${svg(ICON.uploadIcon,18)}</div>
+            <div class="dropzone-title">Click to upload, or drag and drop</div>
+            <div class="dropzone-hint">PDF, DOCX, XLSX, JPG, PNG, KML (ZIP), Shapefile (ZIP), GeoJSON. Max 10 MB.</div>
+            ${fileRow}
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        ${modal.mode==='edit' ? `<button class="btn btn-danger-outline" onclick="deleteFromModal()">${svg(ICON.trash,15)}Delete Document</button><span class="spacer"></span>` : ''}
+        <button class="btn btn-secondary" onclick="modal.path ? (modal.step=2, renderModal()) : (modal.step=1, renderModal())">Back</button>
+        <button class="btn btn-primary" onclick="saveModal()">${modal.mode==='edit'?'Save Changes':'Save and Continue'}</button>
+      </div>`;
+  }
+
+  function wireModal(){
+    if(modal.step===1){
+      document.querySelectorAll('#doc-modal .radio-card').forEach(card=>{
+        card.addEventListener('click', ()=>{
+          modal.path = card.dataset.path;
+          document.querySelectorAll('#doc-modal .radio-card').forEach(c=>c.classList.remove('selected'));
+          card.classList.add('selected');
+          document.getElementById('step1-next').disabled = false;
+        });
+      });
+    }
+    if(modal.step===2 && modal.path==='draw'){
+      mapCtrl = AOIMap.mount(document.getElementById('aoi-map-mount'), {
+        shapes: modal.shapes,
+        onChange(shapes){
+          modal.shapes = shapes;
+          const btn = document.getElementById('step2-next');
+          if(btn) btn.disabled = shapes.length===0;
+        }
+      });
+    }
+  }
+
+  function goStep2(){ modal.step = 2; renderModal(); }
+  function goStep3(){ modal.step = 3; renderModal(); }
+
+  function onSpatialFileChosen(files){
+    if(!files || !files.length) return;
+    modal.shapes.push({ id: Math.random(), type:'point', points:[[500,230]] });
+    document.getElementById('geo-file-preview').innerHTML = `<div class="dropzone-file"><span>${files[0].name}</span></div>`;
+    document.getElementById('step2-next').disabled = false;
+  }
+
+  function onDocFileChosen(files){
+    if(!files || !files.length) return;
+    const f = files[0];
+    modal.fileMeta = { name: f.name, size: (f.size/1024/1024).toFixed(1)+' MB' };
+    if(!modal.name) modal.name = f.name.replace(/\.[^/.]+$/, '');
+    renderModal();
+  }
+
+  function saveModal(){
+    const name = document.getElementById('doc-name-input').value.trim();
+    if(!name){ alert('Please give this document a name.'); return; }
+    modal.name = name;
+    modal.cat = document.getElementById('doc-cat-input').value;
+    modal.summary = document.getElementById('doc-summary-input').value.trim();
+
+    if(modal.mode==='edit'){
+      const doc = DOCS.find(d=>d.code===modal.editingCode);
+      doc.name = modal.name; doc.cat = modal.cat; doc.summary = modal.summary; doc.shapes = modal.shapes;
+      if(modal.fileMeta) doc.size = modal.fileMeta.size;
+    } else {
+      const code = modal.cat.slice(0,3).toUpperCase()+'-'+String(DOCS.length+1).padStart(2,'0');
+      DOCS.push({ code, name: modal.name, cat: modal.cat, size: modal.fileMeta?modal.fileMeta.size:'—', uploaded: new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}), shapes: modal.shapes, summary: modal.summary });
+    }
+    closeModal();
+    renderRows();
+    renderPreview();
+  }
+
+  function deleteFromModal(){
+    const doc = DOCS.find(d=>d.code===modal.editingCode);
+    if(!doc) return;
+    closeModal();
+    deleteDoc(doc.code);
+  }
+
+  document.getElementById('doc-modal').addEventListener('click', (evt)=>{
+    if(evt.target.id==='doc-modal') closeModal();
+  });
 </script>
 </body>
 </html>
